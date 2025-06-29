@@ -1,0 +1,173 @@
+package executor
+
+import (
+	"strings"
+	"testing"
+
+	"github.com/garaemon/jtask/internal/config"
+)
+
+func TestBuildCommand_Shell(t *testing.T) {
+	task := &config.Task{
+		Type:    "shell",
+		Command: "echo hello",
+		Args:    []string{"world"},
+	}
+
+	cmd := buildCommand(task)
+	
+	if cmd.Path != "/bin/sh" {
+		t.Errorf("expected shell path to be /bin/sh, got %s", cmd.Path)
+	}
+	
+	expectedArgs := []string{"/bin/sh", "-c", "echo hello world"}
+	if len(cmd.Args) != len(expectedArgs) {
+		t.Errorf("expected %d args, got %d", len(expectedArgs), len(cmd.Args))
+	}
+	
+	for i, arg := range expectedArgs {
+		if cmd.Args[i] != arg {
+			t.Errorf("expected arg %d to be %s, got %s", i, arg, cmd.Args[i])
+		}
+	}
+}
+
+func TestBuildCommand_Process(t *testing.T) {
+	task := &config.Task{
+		Type:    "process",
+		Command: "go",
+		Args:    []string{"build", "-v"},
+	}
+
+	cmd := buildCommand(task)
+	
+	if !strings.HasSuffix(cmd.Path, "go") {
+		t.Errorf("expected command path to end with go, got %s", cmd.Path)
+	}
+	
+	expectedArgs := []string{"go", "build", "-v"}
+	if len(cmd.Args) != len(expectedArgs) {
+		t.Errorf("expected %d args, got %d", len(expectedArgs), len(cmd.Args))
+	}
+	
+	for i, arg := range expectedArgs {
+		if cmd.Args[i] != arg {
+			t.Errorf("expected arg %d to be %s, got %s", i, arg, cmd.Args[i])
+		}
+	}
+}
+
+func TestBuildShellCommand_WithCustomShell(t *testing.T) {
+	task := &config.Task{
+		Type:    "shell",
+		Command: "ls",
+		Options: &config.TaskOptions{
+			Shell: &config.ShellOptions{
+				Executable: "/bin/bash",
+				Args:       []string{"-c"},
+			},
+		},
+	}
+
+	cmd := buildShellCommand(task)
+	
+	if cmd.Path != "/bin/bash" {
+		t.Errorf("expected shell path to be /bin/bash, got %s", cmd.Path)
+	}
+	
+	expectedArgs := []string{"/bin/bash", "-c", "ls"}
+	if len(cmd.Args) != len(expectedArgs) {
+		t.Errorf("expected %d args, got %d", len(expectedArgs), len(cmd.Args))
+	}
+	
+	for i, arg := range expectedArgs {
+		if cmd.Args[i] != arg {
+			t.Errorf("expected arg %d to be %s, got %s", i, arg, cmd.Args[i])
+		}
+	}
+}
+
+func TestBuildProcessCommand_NoArgs(t *testing.T) {
+	task := &config.Task{
+		Type:    "process",
+		Command: "pwd",
+	}
+
+	cmd := buildProcessCommand(task)
+	
+	if !strings.HasSuffix(cmd.Path, "pwd") {
+		t.Errorf("expected command path to end with pwd, got %s", cmd.Path)
+	}
+	
+	expectedArgs := []string{"pwd"}
+	if len(cmd.Args) != len(expectedArgs) {
+		t.Errorf("expected %d args, got %d", len(expectedArgs), len(cmd.Args))
+	}
+	
+	for i, arg := range expectedArgs {
+		if cmd.Args[i] != arg {
+			t.Errorf("expected arg %d to be %s, got %s", i, arg, cmd.Args[i])
+		}
+	}
+}
+
+func TestBuildEnvVars(t *testing.T) {
+	envMap := map[string]string{
+		"FOO": "bar",
+		"BAZ": "qux",
+	}
+
+	envVars := buildEnvVars(envMap)
+	
+	if len(envVars) != 2 {
+		t.Errorf("expected 2 env vars, got %d", len(envVars))
+	}
+	
+	found := make(map[string]bool)
+	for _, env := range envVars {
+		switch env {
+		case "FOO=bar":
+			found["FOO"] = true
+		case "BAZ=qux":
+			found["BAZ"] = true
+		}
+	}
+	
+	if !found["FOO"] || !found["BAZ"] {
+		t.Errorf("expected env vars FOO=bar and BAZ=qux, got %v", envVars)
+	}
+}
+
+func TestRunTask_UnsupportedType(t *testing.T) {
+	task := &config.Task{
+		Type:    "unsupported",
+		Command: "echo hello",
+	}
+
+	err := RunTask(task)
+	
+	if err == nil {
+		t.Error("expected error for unsupported task type")
+	}
+	
+	if err.Error() != "unsupported task type: unsupported" {
+		t.Errorf("expected error message about unsupported type, got %s", err.Error())
+	}
+}
+
+func TestRunTask_EmptyCommand(t *testing.T) {
+	task := &config.Task{
+		Type:    "shell",
+		Command: "",
+	}
+
+	err := RunTask(task)
+	
+	if err == nil {
+		t.Error("expected error for empty command")
+	}
+	
+	if err.Error() != "task command is empty" {
+		t.Errorf("expected error message about empty command, got %s", err.Error())
+	}
+}
