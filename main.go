@@ -1,7 +1,7 @@
 package main
 
-import "fmt"
+import "github.com/garaemon/jtask/cmd"
 
 func main() {
-	fmt.Println("not implemented yet")
+	cmd.Execute()
 }

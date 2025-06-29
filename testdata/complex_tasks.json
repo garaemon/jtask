@@ -1,0 +1,42 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "compile",
+      "type": "process",
+      "command": "gcc",
+      "args": ["-o", "main", "main.c"],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "options": {
+        "cwd": "${workspaceFolder}/src",
+        "env": {
+          "DEBUG": "1"
+        }
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "run-tests",
+      "type": "shell",
+      "command": "npm",
+      "args": ["test"],
+      "group": "test",
+      "dependsOn": "build",
+      "dependsOrder": "sequence"
+    },
+    {
+      "label": "watch",
+      "type": "shell",  
+      "command": "nodemon",
+      "args": ["--watch", "src", "--exec", "npm start"]
+    }
+  ]
+}
