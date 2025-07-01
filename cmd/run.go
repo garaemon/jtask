@@ -2,6 +2,8 @@ package cmd
 
 import (
 	"fmt"
+	"os"
+	"strings"
 
 	"github.com/garaemon/jtask/internal/config"
 	"github.com/garaemon/jtask/internal/discovery"
@@ -10,6 +12,7 @@ import (
 )
 
 var dryRun bool
+var workspaceFolder string
 
 var runCommand = &cobra.Command{
 	Use:   "run <task-name>",
@@ -21,6 +24,29 @@ var runCommand = &cobra.Command{
 
 func executeRunCommand(cmd *cobra.Command, args []string) error {
 	taskName := args[0]
+
+	// Determine workspace folder
+	var workspaceDir string
+	if workspaceFolder != "" {
+		workspaceDir = workspaceFolder
+	} else {
+		// Default to git root
+		currentDir, err := os.Getwd()
+		if err != nil {
+			return fmt.Errorf("failed to get current directory: %w", err)
+		}
+		gitRoot, err := discovery.FindGitRoot(currentDir)
+		if err != nil {
+			// Fall back to current directory if git root not found
+			workspaceDir = currentDir
+		} else {
+			workspaceDir = gitRoot
+		}
+	}
+
+	if verbose {
+		fmt.Printf("Workspace folder: %s\n", workspaceDir)
+	}
 
 	tasksFilePath, err := discovery.FindTasksFile(configPath)
 	if err != nil {
@@ -49,11 +75,14 @@ func executeRunCommand(cmd *cobra.Command, args []string) error {
 	}
 
 	if dryRun {
-		fmt.Printf("Would execute task: %s\n", targetTask.Label)
-		fmt.Printf("  Type: %s\n", targetTask.Type)
-		fmt.Printf("  Command: %s\n", targetTask.Command)
-		if len(targetTask.Args) > 0 {
-			fmt.Printf("  Args: %v\n", targetTask.Args)
+		// Apply variable substitution for dry-run display
+		substitutedTask := substituteVariablesForDryRun(targetTask, workspaceDir)
+		
+		fmt.Printf("Would execute task: %s\n", substitutedTask.Label)
+		fmt.Printf("  Type: %s\n", substitutedTask.Type)
+		fmt.Printf("  Command: %s\n", substitutedTask.Command)
+		if len(substitutedTask.Args) > 0 {
+			fmt.Printf("  Args: %v\n", substitutedTask.Args)
 		}
 		return nil
 	}
@@ -62,10 +91,29 @@ func executeRunCommand(cmd *cobra.Command, args []string) error {
 		fmt.Printf("Executing task: %s\n", targetTask.Label)
 	}
 
-	return executor.RunTask(targetTask)
+	return executor.RunTask(targetTask, workspaceDir)
+}
+
+func substituteVariablesForDryRun(task *config.Task, workspaceDir string) *config.Task {
+	// Create a copy of the task to avoid modifying the original
+	substituted := *task
+	
+	// Replace ${workspaceFolder} in command
+	substituted.Command = strings.ReplaceAll(task.Command, "${workspaceFolder}", workspaceDir)
+	
+	// Replace ${workspaceFolder} in args
+	if len(task.Args) > 0 {
+		substituted.Args = make([]string, len(task.Args))
+		for i, arg := range task.Args {
+			substituted.Args[i] = strings.ReplaceAll(arg, "${workspaceFolder}", workspaceDir)
+		}
+	}
+	
+	return &substituted
 }
 
 func init() {
 	runCommand.Flags().BoolVar(&dryRun, "dry-run", false, "show what would be executed without running")
+	runCommand.Flags().StringVar(&workspaceFolder, "workspace-folder", "", "workspace folder path (defaults to git root)")
 	rootCmd.AddCommand(runCommand)
 }

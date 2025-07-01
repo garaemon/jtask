@@ -1,0 +1,36 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "workspace-build",
+      "type": "shell",
+      "command": "echo building in ${workspaceFolder}",
+      "group": "build"
+    },
+    {
+      "label": "workspace-cwd",
+      "type": "process",
+      "command": "pwd",
+      "options": {
+        "cwd": "${workspaceFolder}/subdir"
+      }
+    },
+    {
+      "label": "workspace-env",
+      "type": "shell",
+      "command": "echo $PROJECT_ROOT",
+      "options": {
+        "env": {
+          "PROJECT_ROOT": "${workspaceFolder}",
+          "BUILD_DIR": "${workspaceFolder}/build"
+        }
+      }
+    },
+    {
+      "label": "workspace-args",
+      "type": "shell",
+      "command": "ls",
+      "args": ["-la", "${workspaceFolder}"]
+    }
+  ]
+}
