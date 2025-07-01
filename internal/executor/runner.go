@@ -9,7 +9,7 @@ import (
 	"github.com/garaemon/jtask/internal/config"
 )
 
-func executeTask(task *config.Task) error {
+func executeTask(task *config.Task, workspaceDir string) error {
 	if task.Type != "shell" && task.Type != "process" {
 		return fmt.Errorf("unsupported task type: %s", task.Type)
 	}
@@ -18,14 +18,17 @@ func executeTask(task *config.Task) error {
 		return fmt.Errorf("task command is empty")
 	}
 
-	cmd := buildCommand(task)
+	// Apply variable substitution
+	substitutedTask := substituteVariables(task, workspaceDir)
 	
-	if task.Options != nil && task.Options.Cwd != "" {
-		cmd.Dir = task.Options.Cwd
+	cmd := buildCommand(substitutedTask)
+	
+	if substitutedTask.Options != nil && substitutedTask.Options.Cwd != "" {
+		cmd.Dir = substitutedTask.Options.Cwd
 	}
 
-	if task.Options != nil && task.Options.Env != nil {
-		cmd.Env = append(os.Environ(), buildEnvVars(task.Options.Env)...)
+	if substitutedTask.Options != nil && substitutedTask.Options.Env != nil {
+		cmd.Env = append(os.Environ(), buildEnvVars(substitutedTask.Options.Env)...)
 	}
 
 	cmd.Stdout = os.Stdout
@@ -79,6 +82,41 @@ func buildEnvVars(envMap map[string]string) []string {
 	return envVars
 }
 
-func RunTask(task *config.Task) error {
-	return executeTask(task)
+func substituteVariables(task *config.Task, workspaceDir string) *config.Task {
+	// Create a copy of the task to avoid modifying the original
+	substituted := *task
+	
+	// Replace ${workspaceFolder} in command
+	substituted.Command = strings.ReplaceAll(task.Command, "${workspaceFolder}", workspaceDir)
+	
+	// Replace ${workspaceFolder} in args
+	if len(task.Args) > 0 {
+		substituted.Args = make([]string, len(task.Args))
+		for i, arg := range task.Args {
+			substituted.Args[i] = strings.ReplaceAll(arg, "${workspaceFolder}", workspaceDir)
+		}
+	}
+	
+	// Replace ${workspaceFolder} in options if present
+	if task.Options != nil {
+		substituted.Options = &config.TaskOptions{}
+		*substituted.Options = *task.Options
+		
+		if task.Options.Cwd != "" {
+			substituted.Options.Cwd = strings.ReplaceAll(task.Options.Cwd, "${workspaceFolder}", workspaceDir)
+		}
+		
+		if task.Options.Env != nil {
+			substituted.Options.Env = make(map[string]string)
+			for key, value := range task.Options.Env {
+				substituted.Options.Env[key] = strings.ReplaceAll(value, "${workspaceFolder}", workspaceDir)
+			}
+		}
+	}
+	
+	return &substituted
+}
+
+func RunTask(task *config.Task, workspaceDir string) error {
+	return executeTask(task, workspaceDir)
 }

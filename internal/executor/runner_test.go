@@ -144,7 +144,7 @@ func TestRunTask_UnsupportedType(t *testing.T) {
 		Command: "echo hello",
 	}
 
-	err := RunTask(task)
+	err := RunTask(task, "/tmp")
 	
 	if err == nil {
 		t.Error("expected error for unsupported task type")
@@ -161,7 +161,7 @@ func TestRunTask_EmptyCommand(t *testing.T) {
 		Command: "",
 	}
 
-	err := RunTask(task)
+	err := RunTask(task, "/tmp")
 	
 	if err == nil {
 		t.Error("expected error for empty command")
@@ -169,5 +169,51 @@ func TestRunTask_EmptyCommand(t *testing.T) {
 	
 	if err.Error() != "task command is empty" {
 		t.Errorf("expected error message about empty command, got %s", err.Error())
+	}
+}
+
+func TestSubstituteVariables(t *testing.T) {
+	workspaceDir := "/home/user/project"
+	
+	task := &config.Task{
+		Type:    "shell",
+		Command: "ls ${workspaceFolder}",
+		Args:    []string{"${workspaceFolder}/src", "test"},
+		Options: &config.TaskOptions{
+			Cwd: "${workspaceFolder}/build",
+			Env: map[string]string{
+				"PROJECT_ROOT": "${workspaceFolder}",
+				"OTHER_VAR":    "value",
+			},
+		},
+	}
+	
+	substituted := substituteVariables(task, workspaceDir)
+	
+	if substituted.Command != "ls /home/user/project" {
+		t.Errorf("expected command to be 'ls /home/user/project', got '%s'", substituted.Command)
+	}
+	
+	expectedArgs := []string{"/home/user/project/src", "test"}
+	if len(substituted.Args) != len(expectedArgs) {
+		t.Errorf("expected %d args, got %d", len(expectedArgs), len(substituted.Args))
+	}
+	
+	for i, arg := range expectedArgs {
+		if substituted.Args[i] != arg {
+			t.Errorf("expected arg %d to be %s, got %s", i, arg, substituted.Args[i])
+		}
+	}
+	
+	if substituted.Options.Cwd != "/home/user/project/build" {
+		t.Errorf("expected cwd to be '/home/user/project/build', got '%s'", substituted.Options.Cwd)
+	}
+	
+	if substituted.Options.Env["PROJECT_ROOT"] != "/home/user/project" {
+		t.Errorf("expected PROJECT_ROOT to be '/home/user/project', got '%s'", substituted.Options.Env["PROJECT_ROOT"])
+	}
+	
+	if substituted.Options.Env["OTHER_VAR"] != "value" {
+		t.Errorf("expected OTHER_VAR to be 'value', got '%s'", substituted.Options.Env["OTHER_VAR"])
 	}
 }
