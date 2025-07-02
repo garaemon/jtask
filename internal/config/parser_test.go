@@ -108,6 +108,50 @@ func TestLoadTasks_InvalidJSON(t *testing.T) {
 	}
 }
 
+func TestLoadTasks_JSONC(t *testing.T) {
+	testFile := filepath.Join("..", "..", "testdata", "jsonc_tasks.json")
+	
+	tasks, err := LoadTasks(testFile)
+	if err != nil {
+		t.Fatalf("LoadTasks failed for JSONC file: %v", err)
+	}
+	
+	if len(tasks) != 2 {
+		t.Fatalf("Expected 2 tasks, got %d", len(tasks))
+	}
+	
+	buildTask := tasks[0]
+	if buildTask.Label != "build" {
+		t.Errorf("Expected label 'build', got '%s'", buildTask.Label)
+	}
+	if buildTask.Type != "shell" {
+		t.Errorf("Expected type 'shell', got '%s'", buildTask.Type)
+	}
+	if buildTask.Command != "go build" {
+		t.Errorf("Expected command 'go build', got '%s'", buildTask.Command)
+	}
+	if buildTask.GetGroupKind() != "build" {
+		t.Errorf("Expected group 'build', got '%s'", buildTask.GetGroupKind())
+	}
+	
+	testTask := tasks[1]
+	if testTask.Label != "test" {
+		t.Errorf("Expected label 'test', got '%s'", testTask.Label)
+	}
+	if len(testTask.Args) != 2 {
+		t.Errorf("Expected 2 args, got %d", len(testTask.Args))
+	}
+	if testTask.Args[0] != "-v" || testTask.Args[1] != "./..." {
+		t.Errorf("Expected args ['-v', './...'], got %v", testTask.Args)
+	}
+	if testTask.GetGroupKind() != "test" {
+		t.Errorf("Expected group 'test', got '%s'", testTask.GetGroupKind())
+	}
+	if !testTask.IsDefaultInGroup() {
+		t.Error("Expected test task to be default in group")
+	}
+}
+
 func TestTask_GetGroupKind(t *testing.T) {
 	tests := []struct {
 		name     string

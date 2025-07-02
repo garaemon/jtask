@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+
+	"github.com/tidwall/jsonc"
 )
 
 func parseTasksFile(filePath string) (*TasksFile, error) {
@@ -12,8 +14,11 @@ func parseTasksFile(filePath string) (*TasksFile, error) {
 		return nil, fmt.Errorf("failed to read tasks file: %w", err)
 	}
 
+	// Parse JSONC (JSON with comments and trailing commas)
+	jsonData := jsonc.ToJSON(data)
+	
 	var tasksFile TasksFile
-	if err := json.Unmarshal(data, &tasksFile); err != nil {
+	if err := json.Unmarshal(jsonData, &tasksFile); err != nil {
 		return nil, fmt.Errorf("failed to parse tasks file: %w", err)
 	}
 
