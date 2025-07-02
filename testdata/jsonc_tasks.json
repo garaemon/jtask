@@ -1,0 +1,22 @@
+{
+    // Example tasks.json with JSONC format (comments and trailing commas)
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "build",
+            "type": "shell",
+            "command": "go build", // This is a comment
+            "group": "build",
+        },
+        {
+            "label": "test",
+            "type": "shell",
+            "command": "go test",
+            "args": ["-v", "./..."], // Another comment
+            "group": {
+                "kind": "test",
+                "isDefault": true, // Trailing comma
+            },
+        }, // Trailing comma after last task
+    ]
+}
