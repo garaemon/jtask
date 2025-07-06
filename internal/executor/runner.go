@@ -9,7 +9,7 @@ import (
 	"github.com/garaemon/jtask/internal/config"
 )
 
-func executeTask(task *config.Task, workspaceDir string) error {
+func executeTask(task *config.Task, workspaceDir string, file string) error {
 	if task.Type != "shell" && task.Type != "process" {
 		return fmt.Errorf("unsupported task type: %s", task.Type)
 	}
@@ -19,7 +19,7 @@ func executeTask(task *config.Task, workspaceDir string) error {
 	}
 
 	// Apply variable substitution
-	substitutedTask := substituteVariables(task, workspaceDir)
+	substitutedTask := substituteVariables(task, workspaceDir, file)
 	
 	cmd := buildCommand(substitutedTask)
 	
@@ -82,34 +82,38 @@ func buildEnvVars(envMap map[string]string) []string {
 	return envVars
 }
 
-func substituteVariables(task *config.Task, workspaceDir string) *config.Task {
+func substituteVariables(task *config.Task, workspaceDir string, file string) *config.Task {
 	// Create a copy of the task to avoid modifying the original
 	substituted := *task
 	
-	// Replace ${workspaceFolder} in command
+	// Replace ${workspaceFolder} and ${file} in command
 	substituted.Command = strings.ReplaceAll(task.Command, "${workspaceFolder}", workspaceDir)
+	substituted.Command = strings.ReplaceAll(substituted.Command, "${file}", file)
 	
-	// Replace ${workspaceFolder} in args
+	// Replace ${workspaceFolder} and ${file} in args
 	if len(task.Args) > 0 {
 		substituted.Args = make([]string, len(task.Args))
 		for i, arg := range task.Args {
 			substituted.Args[i] = strings.ReplaceAll(arg, "${workspaceFolder}", workspaceDir)
+			substituted.Args[i] = strings.ReplaceAll(substituted.Args[i], "${file}", file)
 		}
 	}
 	
-	// Replace ${workspaceFolder} in options if present
+	// Replace ${workspaceFolder} and ${file} in options if present
 	if task.Options != nil {
 		substituted.Options = &config.TaskOptions{}
 		*substituted.Options = *task.Options
 		
 		if task.Options.Cwd != "" {
 			substituted.Options.Cwd = strings.ReplaceAll(task.Options.Cwd, "${workspaceFolder}", workspaceDir)
+			substituted.Options.Cwd = strings.ReplaceAll(substituted.Options.Cwd, "${file}", file)
 		}
 		
 		if task.Options.Env != nil {
 			substituted.Options.Env = make(map[string]string)
 			for key, value := range task.Options.Env {
 				substituted.Options.Env[key] = strings.ReplaceAll(value, "${workspaceFolder}", workspaceDir)
+				substituted.Options.Env[key] = strings.ReplaceAll(substituted.Options.Env[key], "${file}", file)
 			}
 		}
 	}
@@ -117,6 +121,6 @@ func substituteVariables(task *config.Task, workspaceDir string) *config.Task {
 	return &substituted
 }
 
-func RunTask(task *config.Task, workspaceDir string) error {
-	return executeTask(task, workspaceDir)
+func RunTask(task *config.Task, workspaceDir string, file string) error {
+	return executeTask(task, workspaceDir, file)
 }

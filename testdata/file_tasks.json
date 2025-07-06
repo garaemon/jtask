@@ -1,0 +1,22 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "format-file",
+			"type": "shell",
+			"command": "fmt ${file}"
+		},
+		{
+			"label": "lint-file",
+			"type": "process",
+			"command": "golint",
+			"args": ["${file}"]
+		},
+		{
+			"label": "check-file",
+			"type": "shell",
+			"command": "cat ${workspaceFolder}/${file}",
+			"args": ["${file}"]
+		}
+	]
+}
