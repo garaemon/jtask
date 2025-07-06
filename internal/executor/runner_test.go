@@ -144,7 +144,7 @@ func TestRunTask_UnsupportedType(t *testing.T) {
 		Command: "echo hello",
 	}
 
-	err := RunTask(task, "/tmp")
+	err := RunTask(task, "/tmp", "")
 	
 	if err == nil {
 		t.Error("expected error for unsupported task type")
@@ -161,7 +161,7 @@ func TestRunTask_EmptyCommand(t *testing.T) {
 		Command: "",
 	}
 
-	err := RunTask(task, "/tmp")
+	err := RunTask(task, "/tmp", "")
 	
 	if err == nil {
 		t.Error("expected error for empty command")
@@ -188,7 +188,7 @@ func TestSubstituteVariables(t *testing.T) {
 		},
 	}
 	
-	substituted := substituteVariables(task, workspaceDir)
+	substituted := substituteVariables(task, workspaceDir, "")
 	
 	if substituted.Command != "ls /home/user/project" {
 		t.Errorf("expected command to be 'ls /home/user/project', got '%s'", substituted.Command)
@@ -215,5 +215,52 @@ func TestSubstituteVariables(t *testing.T) {
 	
 	if substituted.Options.Env["OTHER_VAR"] != "value" {
 		t.Errorf("expected OTHER_VAR to be 'value', got '%s'", substituted.Options.Env["OTHER_VAR"])
+	}
+}
+
+func TestSubstituteVariables_WithFile(t *testing.T) {
+	workspaceDir := "/home/user/project"
+	file := "src/main.go"
+	
+	task := &config.Task{
+		Type:    "shell",
+		Command: "cat ${file}",
+		Args:    []string{"${workspaceFolder}/${file}", "test"},
+		Options: &config.TaskOptions{
+			Cwd: "${workspaceFolder}",
+			Env: map[string]string{
+				"TARGET_FILE": "${file}",
+				"PROJECT_ROOT": "${workspaceFolder}",
+			},
+		},
+	}
+	
+	substituted := substituteVariables(task, workspaceDir, file)
+	
+	if substituted.Command != "cat src/main.go" {
+		t.Errorf("expected command to be 'cat src/main.go', got '%s'", substituted.Command)
+	}
+	
+	expectedArgs := []string{"/home/user/project/src/main.go", "test"}
+	if len(substituted.Args) != len(expectedArgs) {
+		t.Errorf("expected %d args, got %d", len(expectedArgs), len(substituted.Args))
+	}
+	
+	for i, arg := range expectedArgs {
+		if substituted.Args[i] != arg {
+			t.Errorf("expected arg %d to be %s, got %s", i, arg, substituted.Args[i])
+		}
+	}
+	
+	if substituted.Options.Cwd != "/home/user/project" {
+		t.Errorf("expected cwd to be '/home/user/project', got '%s'", substituted.Options.Cwd)
+	}
+	
+	if substituted.Options.Env["TARGET_FILE"] != "src/main.go" {
+		t.Errorf("expected TARGET_FILE to be 'src/main.go', got '%s'", substituted.Options.Env["TARGET_FILE"])
+	}
+	
+	if substituted.Options.Env["PROJECT_ROOT"] != "/home/user/project" {
+		t.Errorf("expected PROJECT_ROOT to be '/home/user/project', got '%s'", substituted.Options.Env["PROJECT_ROOT"])
 	}
 }

@@ -534,3 +534,33 @@ func TestExecuteRunCommand_MultipleWorkspaceVars(t *testing.T) {
 		t.Errorf("expected task execution with multiple workspace variables, got %s", output)
 	}
 }
+
+func TestExecuteRunCommand_WithFile(t *testing.T) {
+	configPath = "../testdata/file_tasks.json"
+	file = "src/main.go"
+	defer func() { file = "" }()
+	dryRun = true
+	defer func() { dryRun = false }()
+	
+	oldStdout := os.Stdout
+	r, w, _ := os.Pipe()
+	os.Stdout = w
+	defer func() { os.Stdout = oldStdout }()
+	
+	cmd := &cobra.Command{}
+	args := []string{"format-file"}
+	
+	err := executeRunCommand(cmd, args)
+	
+	_ = w.Close()
+	out, _ := io.ReadAll(r)
+	
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+	
+	output := string(out)
+	if !strings.Contains(output, "Command: fmt src/main.go") {
+		t.Errorf("expected file variable substitution in output, got %s", output)
+	}
+}
