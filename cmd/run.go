@@ -13,6 +13,7 @@ import (
 
 var dryRun bool
 var workspaceFolder string
+var file string
 
 var runCommand = &cobra.Command{
 	Use:   "run <task-name>",
@@ -76,7 +77,7 @@ func executeRunCommand(cmd *cobra.Command, args []string) error {
 
 	if dryRun {
 		// Apply variable substitution for dry-run display
-		substitutedTask := substituteVariablesForDryRun(targetTask, workspaceDir)
+		substitutedTask := substituteVariablesForDryRun(targetTask, workspaceDir, file)
 		
 		fmt.Printf("Would execute task: %s\n", substitutedTask.Label)
 		fmt.Printf("  Type: %s\n", substitutedTask.Type)
@@ -91,21 +92,24 @@ func executeRunCommand(cmd *cobra.Command, args []string) error {
 		fmt.Printf("Executing task: %s\n", targetTask.Label)
 	}
 
-	return executor.RunTask(targetTask, workspaceDir)
+	return executor.RunTask(targetTask, workspaceDir, file)
 }
 
-func substituteVariablesForDryRun(task *config.Task, workspaceDir string) *config.Task {
+func substituteVariablesForDryRun(task *config.Task, workspaceDir string, file string) *config.Task {
 	// Create a copy of the task to avoid modifying the original
 	substituted := *task
 	
 	// Replace ${workspaceFolder} in command
 	substituted.Command = strings.ReplaceAll(task.Command, "${workspaceFolder}", workspaceDir)
+	// Replace ${file} in command
+	substituted.Command = strings.ReplaceAll(substituted.Command, "${file}", file)
 	
-	// Replace ${workspaceFolder} in args
+	// Replace ${workspaceFolder} and ${file} in args
 	if len(task.Args) > 0 {
 		substituted.Args = make([]string, len(task.Args))
 		for i, arg := range task.Args {
 			substituted.Args[i] = strings.ReplaceAll(arg, "${workspaceFolder}", workspaceDir)
+			substituted.Args[i] = strings.ReplaceAll(substituted.Args[i], "${file}", file)
 		}
 	}
 	
@@ -115,5 +119,6 @@ func substituteVariablesForDryRun(task *config.Task, workspaceDir string) *confi
 func init() {
 	runCommand.Flags().BoolVar(&dryRun, "dry-run", false, "show what would be executed without running")
 	runCommand.Flags().StringVar(&workspaceFolder, "workspace-folder", "", "workspace folder path (defaults to git root)")
+	runCommand.Flags().StringVar(&file, "file", "", "file path to replace ${file} variable")
 	rootCmd.AddCommand(runCommand)
 }
