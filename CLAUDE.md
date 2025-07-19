@@ -50,6 +50,13 @@ jtask/
 │   │   ├── shell.go     # Shell task execution
 │   │   ├── process.go   # Process task execution
 │   │   └── runner.go    # Execution coordinator
+│   ├── variables/       # Variable resolution system
+│   │   ├── resolver.go  # Main variable resolver
+│   │   ├── context.go   # Variable context holder
+│   │   ├── file.go      # File-related variables
+│   │   ├── workspace.go # Workspace variables
+│   │   ├── environment.go # Environment variables
+│   │   └── system.go    # System variables
 │   └── discovery/       # Task file discovery
 │       └── finder.go    # .vscode/tasks.json search
 └── templates/           # init templates
@@ -73,23 +80,89 @@ jtask/
 - `--verbose, -v` - Verbose output
 - `--quiet, -q` - Minimal output
 
+## Variable Support
+
+VS Code tasks.json supports extensive variable substitution. Currently, jtask has limited variable support that needs significant enhancement.
+
+### Current Variable Support (Limited)
+- `${workspaceFolder}` - Path to workspace folder
+- `${file}` - Path to currently selected file (via --file flag)
+
+### Missing VS Code Variables
+
+#### File-related Variables
+- `${workspaceFolderBasename}` - Workspace folder name only
+- `${fileWorkspaceFolder}` - Workspace folder of the current file
+- `${relativeFile}` - Current file relative to workspace root
+- `${relativeFileDirname}` - Directory of current file relative to workspace
+- `${fileBasename}` - Current file name with extension
+- `${fileBasenameNoExtension}` - Current file name without extension
+- `${fileDirname}` - Directory path of current file
+- `${fileExtname}` - Extension of current file
+
+#### System Variables
+- `${cwd}` - Current working directory
+- `${execPath}` - Path to VS Code executable (may not apply)
+- `${pathSeparator}` - OS-specific path separator
+- `${env:VARNAME}` - Environment variable expansion
+- `${config:setting}` - VS Code configuration values (may not apply)
+
+#### Editor Variables (Limited Applicability)
+- `${lineNumber}` - Current line number in editor
+- `${selectedText}` - Currently selected text
+
+### Proposed Variable Architecture
+
+#### New Package Structure
+```
+internal/
+└── variables/           # Variable resolution system
+    ├── resolver.go      # Main variable resolver
+    ├── context.go       # Variable context holder
+    ├── file.go          # File-related variables
+    ├── workspace.go     # Workspace variables
+    ├── environment.go   # Environment variables
+    └── system.go        # System variables
+```
+
+#### Core Components
+- `VariableContext` - Holds workspace, file, and environment state
+- `VariableResolver` interface - Pluggable resolver pattern
+- `ResolveAllVariables(text, context)` - Main resolution function
+
+#### Integration Points
+- Replace `substituteVariables()` in `internal/executor/runner.go`
+- Update both run command and dry-run functionality
+- Maintain backward compatibility with existing variables
+
 ## Implementation Phases
 
-### Phase 1: Basic Functionality
-- tasks.json parser
-- Task discovery functionality
-- `list` command
-- `run` command (shell/process tasks)
+### Phase 1: Core Functionality (COMPLETED)
+- tasks.json parser ✓
+- Task discovery functionality ✓
+- `list` command ✓
+- `run` command (shell/process tasks) ✓
 
-### Phase 2: Extended Features
-- `init` command
-- `info` command
-- `validate` command
+### Phase 1.5: Enhanced Variable Support (PRIORITY)
+**This phase should be completed before adding new commands**
+- Implement comprehensive variable resolution system
+- Add `internal/variables` package with pluggable resolvers
+- Support all VS Code file-related variables
+- Support environment variable expansion (`${env:VARNAME}`)
+- Support system variables (`${cwd}`, `${pathSeparator}`)
+- Update existing `run` command to use new variable system
+- Ensure backward compatibility with current variables
+
+### Phase 2: Extended Commands
+- `init` command with template support
+- `info` command for task details
+- `validate` command for tasks.json validation
 
 ### Phase 3: Advanced Features
-- `watch` command
+- `watch` command with file monitoring
 - npm/typescript task type support
 - Compound task (dependsOn) support
+- Task groups and organization features
 
 ## Key Design Goals
 
