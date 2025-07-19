@@ -83,23 +83,32 @@ func buildEnvVars(envMap map[string]string) []string {
 }
 
 func substituteVariables(task *config.Task, workspaceDir string, file string) *config.Task {
+	// Get current working directory for ${cwd} variable
+	cwd, err := os.Getwd()
+	if err != nil {
+		// Fallback to empty string if we can't get the current directory
+		cwd = ""
+	}
+	
 	// Create a copy of the task to avoid modifying the original
 	substituted := *task
 	
-	// Replace ${workspaceFolder} and ${file} in command
+	// Replace variables in command
 	substituted.Command = strings.ReplaceAll(task.Command, "${workspaceFolder}", workspaceDir)
 	substituted.Command = strings.ReplaceAll(substituted.Command, "${file}", file)
+	substituted.Command = strings.ReplaceAll(substituted.Command, "${cwd}", cwd)
 	
-	// Replace ${workspaceFolder} and ${file} in args
+	// Replace variables in args
 	if len(task.Args) > 0 {
 		substituted.Args = make([]string, len(task.Args))
 		for i, arg := range task.Args {
 			substituted.Args[i] = strings.ReplaceAll(arg, "${workspaceFolder}", workspaceDir)
 			substituted.Args[i] = strings.ReplaceAll(substituted.Args[i], "${file}", file)
+			substituted.Args[i] = strings.ReplaceAll(substituted.Args[i], "${cwd}", cwd)
 		}
 	}
 	
-	// Replace ${workspaceFolder} and ${file} in options if present
+	// Replace variables in options if present
 	if task.Options != nil {
 		substituted.Options = &config.TaskOptions{}
 		*substituted.Options = *task.Options
@@ -107,6 +116,7 @@ func substituteVariables(task *config.Task, workspaceDir string, file string) *c
 		if task.Options.Cwd != "" {
 			substituted.Options.Cwd = strings.ReplaceAll(task.Options.Cwd, "${workspaceFolder}", workspaceDir)
 			substituted.Options.Cwd = strings.ReplaceAll(substituted.Options.Cwd, "${file}", file)
+			substituted.Options.Cwd = strings.ReplaceAll(substituted.Options.Cwd, "${cwd}", cwd)
 		}
 		
 		if task.Options.Env != nil {
@@ -114,6 +124,7 @@ func substituteVariables(task *config.Task, workspaceDir string, file string) *c
 			for key, value := range task.Options.Env {
 				substituted.Options.Env[key] = strings.ReplaceAll(value, "${workspaceFolder}", workspaceDir)
 				substituted.Options.Env[key] = strings.ReplaceAll(substituted.Options.Env[key], "${file}", file)
+				substituted.Options.Env[key] = strings.ReplaceAll(substituted.Options.Env[key], "${cwd}", cwd)
 			}
 		}
 	}
