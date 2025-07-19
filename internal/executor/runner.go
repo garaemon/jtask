@@ -115,6 +115,14 @@ func substituteVariables(task *config.Task, workspaceDir string, file string) *c
 		fileBasename = filepath.Base(file)
 	}
 	
+	// Get file basename without extension for ${fileBasenameNoExtension} variable
+	fileBasenameNoExtension := ""
+	if file != "" {
+		basename := filepath.Base(file)
+		ext := filepath.Ext(basename)
+		fileBasenameNoExtension = strings.TrimSuffix(basename, ext)
+	}
+	
 	// Create a copy of the task to avoid modifying the original
 	substituted := *task
 	
@@ -123,6 +131,7 @@ func substituteVariables(task *config.Task, workspaceDir string, file string) *c
 	substituted.Command = strings.ReplaceAll(substituted.Command, "${workspaceFolderBasename}", workspaceFolderBasename)
 	substituted.Command = strings.ReplaceAll(substituted.Command, "${file}", file)
 	substituted.Command = strings.ReplaceAll(substituted.Command, "${fileBasename}", fileBasename)
+	substituted.Command = strings.ReplaceAll(substituted.Command, "${fileBasenameNoExtension}", fileBasenameNoExtension)
 	substituted.Command = strings.ReplaceAll(substituted.Command, "${cwd}", cwd)
 	substituted.Command = strings.ReplaceAll(substituted.Command, "${pathSeparator}", pathSeparator)
 	substituted.Command = substituteEnvVariables(substituted.Command)
@@ -135,6 +144,7 @@ func substituteVariables(task *config.Task, workspaceDir string, file string) *c
 			substituted.Args[i] = strings.ReplaceAll(substituted.Args[i], "${workspaceFolderBasename}", workspaceFolderBasename)
 			substituted.Args[i] = strings.ReplaceAll(substituted.Args[i], "${file}", file)
 			substituted.Args[i] = strings.ReplaceAll(substituted.Args[i], "${fileBasename}", fileBasename)
+			substituted.Args[i] = strings.ReplaceAll(substituted.Args[i], "${fileBasenameNoExtension}", fileBasenameNoExtension)
 			substituted.Args[i] = strings.ReplaceAll(substituted.Args[i], "${cwd}", cwd)
 			substituted.Args[i] = strings.ReplaceAll(substituted.Args[i], "${pathSeparator}", pathSeparator)
 			substituted.Args[i] = substituteEnvVariables(substituted.Args[i])
@@ -151,6 +161,7 @@ func substituteVariables(task *config.Task, workspaceDir string, file string) *c
 			substituted.Options.Cwd = strings.ReplaceAll(substituted.Options.Cwd, "${workspaceFolderBasename}", workspaceFolderBasename)
 			substituted.Options.Cwd = strings.ReplaceAll(substituted.Options.Cwd, "${file}", file)
 			substituted.Options.Cwd = strings.ReplaceAll(substituted.Options.Cwd, "${fileBasename}", fileBasename)
+			substituted.Options.Cwd = strings.ReplaceAll(substituted.Options.Cwd, "${fileBasenameNoExtension}", fileBasenameNoExtension)
 			substituted.Options.Cwd = strings.ReplaceAll(substituted.Options.Cwd, "${cwd}", cwd)
 			substituted.Options.Cwd = strings.ReplaceAll(substituted.Options.Cwd, "${pathSeparator}", pathSeparator)
 			substituted.Options.Cwd = substituteEnvVariables(substituted.Options.Cwd)
@@ -163,6 +174,7 @@ func substituteVariables(task *config.Task, workspaceDir string, file string) *c
 				substituted.Options.Env[key] = strings.ReplaceAll(substituted.Options.Env[key], "${workspaceFolderBasename}", workspaceFolderBasename)
 				substituted.Options.Env[key] = strings.ReplaceAll(substituted.Options.Env[key], "${file}", file)
 				substituted.Options.Env[key] = strings.ReplaceAll(substituted.Options.Env[key], "${fileBasename}", fileBasename)
+				substituted.Options.Env[key] = strings.ReplaceAll(substituted.Options.Env[key], "${fileBasenameNoExtension}", fileBasenameNoExtension)
 				substituted.Options.Env[key] = strings.ReplaceAll(substituted.Options.Env[key], "${cwd}", cwd)
 				substituted.Options.Env[key] = strings.ReplaceAll(substituted.Options.Env[key], "${pathSeparator}", pathSeparator)
 				substituted.Options.Env[key] = substituteEnvVariables(substituted.Options.Env[key])
