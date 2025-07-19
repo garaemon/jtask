@@ -142,6 +142,12 @@ func substituteVariablesForDryRun(task *config.Task, workspaceDir string, file s
 		fileDirname = filepath.Dir(file)
 	}
 	
+	// Get file extension for ${fileExtname} variable
+	fileExtname := ""
+	if file != "" {
+		fileExtname = filepath.Ext(file)
+	}
+	
 	// Create a copy of the task to avoid modifying the original
 	substituted := *task
 	
@@ -152,6 +158,7 @@ func substituteVariablesForDryRun(task *config.Task, workspaceDir string, file s
 	substituted.Command = strings.ReplaceAll(substituted.Command, "${fileBasename}", fileBasename)
 	substituted.Command = strings.ReplaceAll(substituted.Command, "${fileBasenameNoExtension}", fileBasenameNoExtension)
 	substituted.Command = strings.ReplaceAll(substituted.Command, "${fileDirname}", fileDirname)
+	substituted.Command = strings.ReplaceAll(substituted.Command, "${fileExtname}", fileExtname)
 	substituted.Command = strings.ReplaceAll(substituted.Command, "${cwd}", cwd)
 	substituted.Command = strings.ReplaceAll(substituted.Command, "${pathSeparator}", pathSeparator)
 	substituted.Command = substituteEnvVariablesForDryRun(substituted.Command)
@@ -166,6 +173,7 @@ func substituteVariablesForDryRun(task *config.Task, workspaceDir string, file s
 			substituted.Args[i] = strings.ReplaceAll(substituted.Args[i], "${fileBasename}", fileBasename)
 			substituted.Args[i] = strings.ReplaceAll(substituted.Args[i], "${fileBasenameNoExtension}", fileBasenameNoExtension)
 			substituted.Args[i] = strings.ReplaceAll(substituted.Args[i], "${fileDirname}", fileDirname)
+			substituted.Args[i] = strings.ReplaceAll(substituted.Args[i], "${fileExtname}", fileExtname)
 			substituted.Args[i] = strings.ReplaceAll(substituted.Args[i], "${cwd}", cwd)
 			substituted.Args[i] = strings.ReplaceAll(substituted.Args[i], "${pathSeparator}", pathSeparator)
 			substituted.Args[i] = substituteEnvVariablesForDryRun(substituted.Args[i])

@@ -94,6 +94,7 @@ VS Code tasks.json supports extensive variable substitution. Currently, jtask ha
 - `${fileBasename}` - Current file name with extension ✓
 - `${fileBasenameNoExtension}` - Current file name without extension ✓
 - `${fileDirname}` - Directory path of current file ✓
+- `${fileExtname}` - Extension of current file ✓
 
 ### Missing VS Code Variables
 
@@ -101,7 +102,6 @@ VS Code tasks.json supports extensive variable substitution. Currently, jtask ha
 - `${fileWorkspaceFolder}` - Workspace folder of the current file
 - `${relativeFile}` - Current file relative to workspace root
 - `${relativeFileDirname}` - Directory of current file relative to workspace
-- `${fileExtname}` - Extension of current file
 
 #### System Variables
 - `${execPath}` - Path to VS Code executable (may not apply)
@@ -157,6 +157,7 @@ internal/
 - ✓ Added `${fileBasename}` variable support
 - ✓ Added `${fileBasenameNoExtension}` variable support
 - ✓ Added `${fileDirname}` variable support
+- ✓ Added `${fileExtname}` variable support
 
 ### Phase 2: Extended Commands
 - `init` command with template support
