@@ -589,3 +589,112 @@ func TestSubstituteVariables_WorkspaceFolderBasenameEdgeCases(t *testing.T) {
 		})
 	}
 }
+
+func TestSubstituteVariables_WithFileBasename(t *testing.T) {
+	workspaceDir := "/home/user/project"
+	file := "src/components/main.tsx"
+	
+	task := &config.Task{
+		Type:    "shell",
+		Command: "echo ${fileBasename}",
+		Args:    []string{"--file", "${fileBasename}", "test"},
+		Options: &config.TaskOptions{
+			Cwd: "${workspaceFolder}/build",
+			Env: map[string]string{
+				"CURRENT_FILE": "${fileBasename}",
+				"OUTPUT_FILE": "${fileBasename}.bak",
+			},
+		},
+	}
+	
+	substituted := substituteVariables(task, workspaceDir, file)
+	
+	expectedCommand := "echo main.tsx"
+	if substituted.Command != expectedCommand {
+		t.Errorf("expected command to be '%s', got '%s'", expectedCommand, substituted.Command)
+	}
+	
+	expectedArgs := []string{"--file", "main.tsx", "test"}
+	if len(substituted.Args) != len(expectedArgs) {
+		t.Errorf("expected %d args, got %d", len(expectedArgs), len(substituted.Args))
+	}
+	
+	for i, arg := range expectedArgs {
+		if substituted.Args[i] != arg {
+			t.Errorf("expected arg %d to be %s, got %s", i, arg, substituted.Args[i])
+		}
+	}
+	
+	expectedCwdPath := workspaceDir + "/build"
+	if substituted.Options.Cwd != expectedCwdPath {
+		t.Errorf("expected cwd to be '%s', got '%s'", expectedCwdPath, substituted.Options.Cwd)
+	}
+	
+	if substituted.Options.Env["CURRENT_FILE"] != "main.tsx" {
+		t.Errorf("expected CURRENT_FILE to be 'main.tsx', got '%s'", substituted.Options.Env["CURRENT_FILE"])
+	}
+	
+	if substituted.Options.Env["OUTPUT_FILE"] != "main.tsx.bak" {
+		t.Errorf("expected OUTPUT_FILE to be 'main.tsx.bak', got '%s'", substituted.Options.Env["OUTPUT_FILE"])
+	}
+}
+
+func TestSubstituteVariables_FileBasenameEdgeCases(t *testing.T) {
+	tests := []struct {
+		file     string
+		expected string
+		name     string
+	}{
+		{
+			file:     "src/main.go",
+			expected: "main.go",
+			name:     "normal file path",
+		},
+		{
+			file:     "src/components/Button.tsx",
+			expected: "Button.tsx",
+			name:     "nested file path",
+		},
+		{
+			file:     "main.go",
+			expected: "main.go",
+			name:     "file in root",
+		},
+		{
+			file:     "README.md",
+			expected: "README.md",
+			name:     "markdown file",
+		},
+		{
+			file:     "src/utils/helper.test.js",
+			expected: "helper.test.js",
+			name:     "test file with multiple dots",
+		},
+		{
+			file:     "file-with-dashes.json",
+			expected: "file-with-dashes.json",
+			name:     "file with dashes",
+		},
+		{
+			file:     "",
+			expected: "",
+			name:     "empty file path",
+		},
+	}
+	
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			task := &config.Task{
+				Type:    "shell",
+				Command: "echo ${fileBasename}",
+			}
+			
+			substituted := substituteVariables(task, "/home/user/project", test.file)
+			expectedCommand := "echo " + test.expected
+			
+			if substituted.Command != expectedCommand {
+				t.Errorf("expected command to be '%s', got '%s'", expectedCommand, substituted.Command)
+			}
+		})
+	}
+}
