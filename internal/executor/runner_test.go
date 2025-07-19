@@ -375,3 +375,117 @@ func TestSubstituteVariables_WithPathSeparator(t *testing.T) {
 		t.Errorf("expected BUILD_PATH to be '%s', got '%s'", expectedBuildPath, substituted.Options.Env["BUILD_PATH"])
 	}
 }
+
+func TestSubstituteVariables_WithEnvVars(t *testing.T) {
+	workspaceDir := "/home/user/project"
+	file := "src/main.go"
+	
+	// Set test environment variables
+	os.Setenv("TEST_VAR", "test_value")
+	os.Setenv("BUILD_TYPE", "debug")
+	defer func() {
+		os.Unsetenv("TEST_VAR")
+		os.Unsetenv("BUILD_TYPE")
+	}()
+	
+	task := &config.Task{
+		Type:    "shell",
+		Command: "echo ${env:TEST_VAR}",
+		Args:    []string{"--mode", "${env:BUILD_TYPE}", "test"},
+		Options: &config.TaskOptions{
+			Cwd: "${workspaceFolder}/${env:BUILD_TYPE}",
+			Env: map[string]string{
+				"CURRENT_VAR":    "${env:TEST_VAR}",
+				"BUILD_CONFIG":   "${env:BUILD_TYPE}",
+				"MISSING_VAR":    "${env:NONEXISTENT}",
+			},
+		},
+	}
+	
+	substituted := substituteVariables(task, workspaceDir, file)
+	
+	expectedCommand := "echo test_value"
+	if substituted.Command != expectedCommand {
+		t.Errorf("expected command to be '%s', got '%s'", expectedCommand, substituted.Command)
+	}
+	
+	expectedArgs := []string{"--mode", "debug", "test"}
+	if len(substituted.Args) != len(expectedArgs) {
+		t.Errorf("expected %d args, got %d", len(expectedArgs), len(substituted.Args))
+	}
+	
+	for i, arg := range expectedArgs {
+		if substituted.Args[i] != arg {
+			t.Errorf("expected arg %d to be %s, got %s", i, arg, substituted.Args[i])
+		}
+	}
+	
+	expectedCwdPath := workspaceDir + "/debug"
+	if substituted.Options.Cwd != expectedCwdPath {
+		t.Errorf("expected cwd to be '%s', got '%s'", expectedCwdPath, substituted.Options.Cwd)
+	}
+	
+	if substituted.Options.Env["CURRENT_VAR"] != "test_value" {
+		t.Errorf("expected CURRENT_VAR to be 'test_value', got '%s'", substituted.Options.Env["CURRENT_VAR"])
+	}
+	
+	if substituted.Options.Env["BUILD_CONFIG"] != "debug" {
+		t.Errorf("expected BUILD_CONFIG to be 'debug', got '%s'", substituted.Options.Env["BUILD_CONFIG"])
+	}
+	
+	// Test that non-existent environment variables are replaced with empty string
+	if substituted.Options.Env["MISSING_VAR"] != "" {
+		t.Errorf("expected MISSING_VAR to be empty string, got '%s'", substituted.Options.Env["MISSING_VAR"])
+	}
+}
+
+func TestSubstituteEnvVariables(t *testing.T) {
+	// Set test environment variables
+	os.Setenv("TEST_HOME", "/home/test")
+	os.Setenv("TEST_PATH", "/usr/bin")
+	defer func() {
+		os.Unsetenv("TEST_HOME")
+		os.Unsetenv("TEST_PATH")
+	}()
+	
+	tests := []struct {
+		input    string
+		expected string
+		name     string
+	}{
+		{
+			input:    "echo ${env:TEST_HOME}",
+			expected: "echo /home/test",
+			name:     "single env var",
+		},
+		{
+			input:    "${env:TEST_HOME}/${env:TEST_PATH}",
+			expected: "/home/test//usr/bin",
+			name:     "multiple env vars",
+		},
+		{
+			input:    "no variables here",
+			expected: "no variables here",
+			name:     "no env vars",
+		},
+		{
+			input:    "${env:NONEXISTENT}",
+			expected: "",
+			name:     "non-existent env var",
+		},
+		{
+			input:    "prefix_${env:TEST_HOME}_suffix",
+			expected: "prefix_/home/test_suffix",
+			name:     "env var with prefix and suffix",
+		},
+	}
+	
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			result := substituteEnvVariables(test.input)
+			if result != test.expected {
+				t.Errorf("expected '%s', got '%s'", test.expected, result)
+			}
+		})
+	}
+}

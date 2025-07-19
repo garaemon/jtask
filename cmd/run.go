@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/garaemon/jtask/internal/config"
@@ -96,6 +97,17 @@ func executeRunCommand(cmd *cobra.Command, args []string) error {
 	return executor.RunTask(targetTask, workspaceDir, file)
 }
 
+// substituteEnvVariablesForDryRun replaces ${env:VARNAME} patterns with environment variable values
+func substituteEnvVariablesForDryRun(text string) string {
+	envVarPattern := regexp.MustCompile(`\$\{env:([^}]+)\}`)
+	return envVarPattern.ReplaceAllStringFunc(text, func(match string) string {
+		// Extract variable name from ${env:VARNAME}
+		varName := envVarPattern.FindStringSubmatch(match)[1]
+		// Get environment variable value, return empty string if not found
+		return os.Getenv(varName)
+	})
+}
+
 func substituteVariablesForDryRun(task *config.Task, workspaceDir string, file string) *config.Task {
 	// Get current working directory for ${cwd} variable
 	cwd, err := os.Getwd()
@@ -115,6 +127,7 @@ func substituteVariablesForDryRun(task *config.Task, workspaceDir string, file s
 	substituted.Command = strings.ReplaceAll(substituted.Command, "${file}", file)
 	substituted.Command = strings.ReplaceAll(substituted.Command, "${cwd}", cwd)
 	substituted.Command = strings.ReplaceAll(substituted.Command, "${pathSeparator}", pathSeparator)
+	substituted.Command = substituteEnvVariablesForDryRun(substituted.Command)
 	
 	// Replace variables in args
 	if len(task.Args) > 0 {
@@ -124,6 +137,7 @@ func substituteVariablesForDryRun(task *config.Task, workspaceDir string, file s
 			substituted.Args[i] = strings.ReplaceAll(substituted.Args[i], "${file}", file)
 			substituted.Args[i] = strings.ReplaceAll(substituted.Args[i], "${cwd}", cwd)
 			substituted.Args[i] = strings.ReplaceAll(substituted.Args[i], "${pathSeparator}", pathSeparator)
+			substituted.Args[i] = substituteEnvVariablesForDryRun(substituted.Args[i])
 		}
 	}
 	

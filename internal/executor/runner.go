@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/garaemon/jtask/internal/config"
@@ -83,6 +84,17 @@ func buildEnvVars(envMap map[string]string) []string {
 	return envVars
 }
 
+// substituteEnvVariables replaces ${env:VARNAME} patterns with environment variable values
+func substituteEnvVariables(text string) string {
+	envVarPattern := regexp.MustCompile(`\$\{env:([^}]+)\}`)
+	return envVarPattern.ReplaceAllStringFunc(text, func(match string) string {
+		// Extract variable name from ${env:VARNAME}
+		varName := envVarPattern.FindStringSubmatch(match)[1]
+		// Get environment variable value, return empty string if not found
+		return os.Getenv(varName)
+	})
+}
+
 func substituteVariables(task *config.Task, workspaceDir string, file string) *config.Task {
 	// Get current working directory for ${cwd} variable
 	cwd, err := os.Getwd()
@@ -102,6 +114,7 @@ func substituteVariables(task *config.Task, workspaceDir string, file string) *c
 	substituted.Command = strings.ReplaceAll(substituted.Command, "${file}", file)
 	substituted.Command = strings.ReplaceAll(substituted.Command, "${cwd}", cwd)
 	substituted.Command = strings.ReplaceAll(substituted.Command, "${pathSeparator}", pathSeparator)
+	substituted.Command = substituteEnvVariables(substituted.Command)
 	
 	// Replace variables in args
 	if len(task.Args) > 0 {
@@ -111,6 +124,7 @@ func substituteVariables(task *config.Task, workspaceDir string, file string) *c
 			substituted.Args[i] = strings.ReplaceAll(substituted.Args[i], "${file}", file)
 			substituted.Args[i] = strings.ReplaceAll(substituted.Args[i], "${cwd}", cwd)
 			substituted.Args[i] = strings.ReplaceAll(substituted.Args[i], "${pathSeparator}", pathSeparator)
+			substituted.Args[i] = substituteEnvVariables(substituted.Args[i])
 		}
 	}
 	
@@ -124,6 +138,7 @@ func substituteVariables(task *config.Task, workspaceDir string, file string) *c
 			substituted.Options.Cwd = strings.ReplaceAll(substituted.Options.Cwd, "${file}", file)
 			substituted.Options.Cwd = strings.ReplaceAll(substituted.Options.Cwd, "${cwd}", cwd)
 			substituted.Options.Cwd = strings.ReplaceAll(substituted.Options.Cwd, "${pathSeparator}", pathSeparator)
+			substituted.Options.Cwd = substituteEnvVariables(substituted.Options.Cwd)
 		}
 		
 		if task.Options.Env != nil {
@@ -133,6 +148,7 @@ func substituteVariables(task *config.Task, workspaceDir string, file string) *c
 				substituted.Options.Env[key] = strings.ReplaceAll(substituted.Options.Env[key], "${file}", file)
 				substituted.Options.Env[key] = strings.ReplaceAll(substituted.Options.Env[key], "${cwd}", cwd)
 				substituted.Options.Env[key] = strings.ReplaceAll(substituted.Options.Env[key], "${pathSeparator}", pathSeparator)
+				substituted.Options.Env[key] = substituteEnvVariables(substituted.Options.Env[key])
 			}
 		}
 	}
