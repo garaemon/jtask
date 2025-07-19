@@ -106,11 +106,15 @@ func substituteVariables(task *config.Task, workspaceDir string, file string) *c
 	// Get OS-specific path separator for ${pathSeparator} variable
 	pathSeparator := string(filepath.Separator)
 	
+	// Get workspace folder basename for ${workspaceFolderBasename} variable
+	workspaceFolderBasename := filepath.Base(workspaceDir)
+	
 	// Create a copy of the task to avoid modifying the original
 	substituted := *task
 	
 	// Replace variables in command
 	substituted.Command = strings.ReplaceAll(task.Command, "${workspaceFolder}", workspaceDir)
+	substituted.Command = strings.ReplaceAll(substituted.Command, "${workspaceFolderBasename}", workspaceFolderBasename)
 	substituted.Command = strings.ReplaceAll(substituted.Command, "${file}", file)
 	substituted.Command = strings.ReplaceAll(substituted.Command, "${cwd}", cwd)
 	substituted.Command = strings.ReplaceAll(substituted.Command, "${pathSeparator}", pathSeparator)
@@ -121,6 +125,7 @@ func substituteVariables(task *config.Task, workspaceDir string, file string) *c
 		substituted.Args = make([]string, len(task.Args))
 		for i, arg := range task.Args {
 			substituted.Args[i] = strings.ReplaceAll(arg, "${workspaceFolder}", workspaceDir)
+			substituted.Args[i] = strings.ReplaceAll(substituted.Args[i], "${workspaceFolderBasename}", workspaceFolderBasename)
 			substituted.Args[i] = strings.ReplaceAll(substituted.Args[i], "${file}", file)
 			substituted.Args[i] = strings.ReplaceAll(substituted.Args[i], "${cwd}", cwd)
 			substituted.Args[i] = strings.ReplaceAll(substituted.Args[i], "${pathSeparator}", pathSeparator)
@@ -135,6 +140,7 @@ func substituteVariables(task *config.Task, workspaceDir string, file string) *c
 		
 		if task.Options.Cwd != "" {
 			substituted.Options.Cwd = strings.ReplaceAll(task.Options.Cwd, "${workspaceFolder}", workspaceDir)
+			substituted.Options.Cwd = strings.ReplaceAll(substituted.Options.Cwd, "${workspaceFolderBasename}", workspaceFolderBasename)
 			substituted.Options.Cwd = strings.ReplaceAll(substituted.Options.Cwd, "${file}", file)
 			substituted.Options.Cwd = strings.ReplaceAll(substituted.Options.Cwd, "${cwd}", cwd)
 			substituted.Options.Cwd = strings.ReplaceAll(substituted.Options.Cwd, "${pathSeparator}", pathSeparator)
@@ -145,6 +151,7 @@ func substituteVariables(task *config.Task, workspaceDir string, file string) *c
 			substituted.Options.Env = make(map[string]string)
 			for key, value := range task.Options.Env {
 				substituted.Options.Env[key] = strings.ReplaceAll(value, "${workspaceFolder}", workspaceDir)
+				substituted.Options.Env[key] = strings.ReplaceAll(substituted.Options.Env[key], "${workspaceFolderBasename}", workspaceFolderBasename)
 				substituted.Options.Env[key] = strings.ReplaceAll(substituted.Options.Env[key], "${file}", file)
 				substituted.Options.Env[key] = strings.ReplaceAll(substituted.Options.Env[key], "${cwd}", cwd)
 				substituted.Options.Env[key] = strings.ReplaceAll(substituted.Options.Env[key], "${pathSeparator}", pathSeparator)

@@ -90,11 +90,11 @@ VS Code tasks.json supports extensive variable substitution. Currently, jtask ha
 - `${cwd}` - Current working directory ✓
 - `${pathSeparator}` - OS-specific path separator ✓
 - `${env:VARNAME}` - Environment variable expansion ✓
+- `${workspaceFolderBasename}` - Workspace folder name only ✓
 
 ### Missing VS Code Variables
 
 #### File-related Variables
-- `${workspaceFolderBasename}` - Workspace folder name only
 - `${fileWorkspaceFolder}` - Workspace folder of the current file
 - `${relativeFile}` - Current file relative to workspace root
 - `${relativeFileDirname}` - Directory of current file relative to workspace
@@ -153,6 +153,7 @@ internal/
 - ✓ Added `${cwd}` variable support
 - ✓ Added `${pathSeparator}` variable support
 - ✓ Added `${env:VARNAME}` environment variable expansion
+- ✓ Added `${workspaceFolderBasename}` variable support
 
 ### Phase 2: Extended Commands
 - `init` command with template support

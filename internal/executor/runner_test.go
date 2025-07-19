@@ -489,3 +489,103 @@ func TestSubstituteEnvVariables(t *testing.T) {
 		})
 	}
 }
+
+func TestSubstituteVariables_WithWorkspaceFolderBasename(t *testing.T) {
+	workspaceDir := "/home/user/my-project"
+	file := "src/main.go"
+	
+	task := &config.Task{
+		Type:    "shell",
+		Command: "echo ${workspaceFolderBasename}",
+		Args:    []string{"--project", "${workspaceFolderBasename}", "test"},
+		Options: &config.TaskOptions{
+			Cwd: "${workspaceFolder}/${workspaceFolderBasename}-build",
+			Env: map[string]string{
+				"PROJECT_NAME": "${workspaceFolderBasename}",
+				"BUILD_DIR":    "${workspaceFolderBasename}/dist",
+			},
+		},
+	}
+	
+	substituted := substituteVariables(task, workspaceDir, file)
+	
+	expectedCommand := "echo my-project"
+	if substituted.Command != expectedCommand {
+		t.Errorf("expected command to be '%s', got '%s'", expectedCommand, substituted.Command)
+	}
+	
+	expectedArgs := []string{"--project", "my-project", "test"}
+	if len(substituted.Args) != len(expectedArgs) {
+		t.Errorf("expected %d args, got %d", len(expectedArgs), len(substituted.Args))
+	}
+	
+	for i, arg := range expectedArgs {
+		if substituted.Args[i] != arg {
+			t.Errorf("expected arg %d to be %s, got %s", i, arg, substituted.Args[i])
+		}
+	}
+	
+	expectedCwdPath := workspaceDir + "/my-project-build"
+	if substituted.Options.Cwd != expectedCwdPath {
+		t.Errorf("expected cwd to be '%s', got '%s'", expectedCwdPath, substituted.Options.Cwd)
+	}
+	
+	if substituted.Options.Env["PROJECT_NAME"] != "my-project" {
+		t.Errorf("expected PROJECT_NAME to be 'my-project', got '%s'", substituted.Options.Env["PROJECT_NAME"])
+	}
+	
+	expectedBuildDir := "my-project/dist"
+	if substituted.Options.Env["BUILD_DIR"] != expectedBuildDir {
+		t.Errorf("expected BUILD_DIR to be '%s', got '%s'", expectedBuildDir, substituted.Options.Env["BUILD_DIR"])
+	}
+}
+
+func TestSubstituteVariables_WorkspaceFolderBasenameEdgeCases(t *testing.T) {
+	tests := []struct {
+		workspaceDir string
+		expected     string
+		name         string
+	}{
+		{
+			workspaceDir: "/home/user/project",
+			expected:     "project",
+			name:         "normal path",
+		},
+		{
+			workspaceDir: "/home/user/my-project-with-dashes",
+			expected:     "my-project-with-dashes",
+			name:         "path with dashes",
+		},
+		{
+			workspaceDir: "/",
+			expected:     "/",
+			name:         "root directory",
+		},
+		{
+			workspaceDir: "project",
+			expected:     "project",
+			name:         "relative path",
+		},
+		{
+			workspaceDir: "/home/user/project/",
+			expected:     "project",
+			name:         "path with trailing slash",
+		},
+	}
+	
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			task := &config.Task{
+				Type:    "shell",
+				Command: "echo ${workspaceFolderBasename}",
+			}
+			
+			substituted := substituteVariables(task, test.workspaceDir, "")
+			expectedCommand := "echo " + test.expected
+			
+			if substituted.Command != expectedCommand {
+				t.Errorf("expected command to be '%s', got '%s'", expectedCommand, substituted.Command)
+			}
+		})
+	}
+}
