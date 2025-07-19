@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/garaemon/jtask/internal/config"
@@ -103,6 +104,9 @@ func substituteVariablesForDryRun(task *config.Task, workspaceDir string, file s
 		cwd = ""
 	}
 	
+	// Get OS-specific path separator for ${pathSeparator} variable
+	pathSeparator := string(filepath.Separator)
+	
 	// Create a copy of the task to avoid modifying the original
 	substituted := *task
 	
@@ -110,6 +114,7 @@ func substituteVariablesForDryRun(task *config.Task, workspaceDir string, file s
 	substituted.Command = strings.ReplaceAll(task.Command, "${workspaceFolder}", workspaceDir)
 	substituted.Command = strings.ReplaceAll(substituted.Command, "${file}", file)
 	substituted.Command = strings.ReplaceAll(substituted.Command, "${cwd}", cwd)
+	substituted.Command = strings.ReplaceAll(substituted.Command, "${pathSeparator}", pathSeparator)
 	
 	// Replace variables in args
 	if len(task.Args) > 0 {
@@ -118,6 +123,7 @@ func substituteVariablesForDryRun(task *config.Task, workspaceDir string, file s
 			substituted.Args[i] = strings.ReplaceAll(arg, "${workspaceFolder}", workspaceDir)
 			substituted.Args[i] = strings.ReplaceAll(substituted.Args[i], "${file}", file)
 			substituted.Args[i] = strings.ReplaceAll(substituted.Args[i], "${cwd}", cwd)
+			substituted.Args[i] = strings.ReplaceAll(substituted.Args[i], "${pathSeparator}", pathSeparator)
 		}
 	}
 	

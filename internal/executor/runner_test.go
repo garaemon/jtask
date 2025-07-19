@@ -2,6 +2,7 @@ package executor
 
 import (
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -319,5 +320,58 @@ func TestSubstituteVariables_WithCwd(t *testing.T) {
 	expectedBuildDir := expectedCwd + "/build"
 	if substituted.Options.Env["BUILD_DIR"] != expectedBuildDir {
 		t.Errorf("expected BUILD_DIR to be '%s', got '%s'", expectedBuildDir, substituted.Options.Env["BUILD_DIR"])
+	}
+}
+
+func TestSubstituteVariables_WithPathSeparator(t *testing.T) {
+	workspaceDir := "/home/user/project"
+	file := "src/main.go"
+	
+	task := &config.Task{
+		Type:    "shell",
+		Command: "echo ${pathSeparator}",
+		Args:    []string{"path1${pathSeparator}path2", "test"},
+		Options: &config.TaskOptions{
+			Cwd: "${workspaceFolder}${pathSeparator}build",
+			Env: map[string]string{
+				"PATH_SEP":   "${pathSeparator}",
+				"BUILD_PATH": "src${pathSeparator}dist",
+			},
+		},
+	}
+	
+	substituted := substituteVariables(task, workspaceDir, file)
+	
+	// Get expected path separator value (should be OS-specific)
+	expectedPathSeparator := string(filepath.Separator)
+	
+	expectedCommand := "echo " + expectedPathSeparator
+	if substituted.Command != expectedCommand {
+		t.Errorf("expected command to be '%s', got '%s'", expectedCommand, substituted.Command)
+	}
+	
+	expectedArgs := []string{"path1" + expectedPathSeparator + "path2", "test"}
+	if len(substituted.Args) != len(expectedArgs) {
+		t.Errorf("expected %d args, got %d", len(expectedArgs), len(substituted.Args))
+	}
+	
+	for i, arg := range expectedArgs {
+		if substituted.Args[i] != arg {
+			t.Errorf("expected arg %d to be %s, got %s", i, arg, substituted.Args[i])
+		}
+	}
+	
+	expectedCwdPath := workspaceDir + expectedPathSeparator + "build"
+	if substituted.Options.Cwd != expectedCwdPath {
+		t.Errorf("expected cwd to be '%s', got '%s'", expectedCwdPath, substituted.Options.Cwd)
+	}
+	
+	if substituted.Options.Env["PATH_SEP"] != expectedPathSeparator {
+		t.Errorf("expected PATH_SEP to be '%s', got '%s'", expectedPathSeparator, substituted.Options.Env["PATH_SEP"])
+	}
+	
+	expectedBuildPath := "src" + expectedPathSeparator + "dist"
+	if substituted.Options.Env["BUILD_PATH"] != expectedBuildPath {
+		t.Errorf("expected BUILD_PATH to be '%s', got '%s'", expectedBuildPath, substituted.Options.Env["BUILD_PATH"])
 	}
 }
