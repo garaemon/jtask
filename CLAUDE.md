@@ -84,9 +84,10 @@ jtask/
 
 VS Code tasks.json supports extensive variable substitution. Currently, jtask has limited variable support that needs significant enhancement.
 
-### Current Variable Support (Limited)
+### Current Variable Support
 - `${workspaceFolder}` - Path to workspace folder
 - `${file}` - Path to currently selected file (via --file flag)
+- `${cwd}` - Current working directory ✓
 
 ### Missing VS Code Variables
 
@@ -101,7 +102,6 @@ VS Code tasks.json supports extensive variable substitution. Currently, jtask ha
 - `${fileExtname}` - Extension of current file
 
 #### System Variables
-- `${cwd}` - Current working directory
 - `${execPath}` - Path to VS Code executable (may not apply)
 - `${pathSeparator}` - OS-specific path separator
 - `${env:VARNAME}` - Environment variable expansion
@@ -143,15 +143,16 @@ internal/
 - `list` command ✓
 - `run` command (shell/process tasks) ✓
 
-### Phase 1.5: Enhanced Variable Support (PRIORITY)
+### Phase 1.5: Enhanced Variable Support (IN PROGRESS)
 **This phase should be completed before adding new commands**
 - Implement comprehensive variable resolution system
 - Add `internal/variables` package with pluggable resolvers
 - Support all VS Code file-related variables
 - Support environment variable expansion (`${env:VARNAME}`)
-- Support system variables (`${cwd}`, `${pathSeparator}`)
+- Support system variables (`${pathSeparator}`)
 - Update existing `run` command to use new variable system
 - Ensure backward compatibility with current variables
+- ✓ Added `${cwd}` variable support
 
 ### Phase 2: Extended Commands
 - `init` command with template support

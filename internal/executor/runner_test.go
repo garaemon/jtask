@@ -1,6 +1,7 @@
 package executor
 
 import (
+	"os"
 	"strings"
 	"testing"
 
@@ -262,5 +263,61 @@ func TestSubstituteVariables_WithFile(t *testing.T) {
 	
 	if substituted.Options.Env["PROJECT_ROOT"] != "/home/user/project" {
 		t.Errorf("expected PROJECT_ROOT to be '/home/user/project', got '%s'", substituted.Options.Env["PROJECT_ROOT"])
+	}
+}
+
+func TestSubstituteVariables_WithCwd(t *testing.T) {
+	workspaceDir := "/home/user/project"
+	file := "src/main.go"
+	
+	task := &config.Task{
+		Type:    "shell",
+		Command: "echo ${cwd}",
+		Args:    []string{"${cwd}/build", "test"},
+		Options: &config.TaskOptions{
+			Cwd: "${cwd}/output",
+			Env: map[string]string{
+				"CURRENT_DIR": "${cwd}",
+				"BUILD_DIR":   "${cwd}/build",
+			},
+		},
+	}
+	
+	substituted := substituteVariables(task, workspaceDir, file)
+	
+	// Get expected cwd value (should be the current working directory)
+	expectedCwd, err := os.Getwd()
+	if err != nil {
+		expectedCwd = ""
+	}
+	
+	expectedCommand := "echo " + expectedCwd
+	if substituted.Command != expectedCommand {
+		t.Errorf("expected command to be '%s', got '%s'", expectedCommand, substituted.Command)
+	}
+	
+	expectedArgs := []string{expectedCwd + "/build", "test"}
+	if len(substituted.Args) != len(expectedArgs) {
+		t.Errorf("expected %d args, got %d", len(expectedArgs), len(substituted.Args))
+	}
+	
+	for i, arg := range expectedArgs {
+		if substituted.Args[i] != arg {
+			t.Errorf("expected arg %d to be %s, got %s", i, arg, substituted.Args[i])
+		}
+	}
+	
+	expectedCwdPath := expectedCwd + "/output"
+	if substituted.Options.Cwd != expectedCwdPath {
+		t.Errorf("expected cwd to be '%s', got '%s'", expectedCwdPath, substituted.Options.Cwd)
+	}
+	
+	if substituted.Options.Env["CURRENT_DIR"] != expectedCwd {
+		t.Errorf("expected CURRENT_DIR to be '%s', got '%s'", expectedCwd, substituted.Options.Env["CURRENT_DIR"])
+	}
+	
+	expectedBuildDir := expectedCwd + "/build"
+	if substituted.Options.Env["BUILD_DIR"] != expectedBuildDir {
+		t.Errorf("expected BUILD_DIR to be '%s', got '%s'", expectedBuildDir, substituted.Options.Env["BUILD_DIR"])
 	}
 }

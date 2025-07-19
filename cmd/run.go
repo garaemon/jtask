@@ -96,20 +96,28 @@ func executeRunCommand(cmd *cobra.Command, args []string) error {
 }
 
 func substituteVariablesForDryRun(task *config.Task, workspaceDir string, file string) *config.Task {
+	// Get current working directory for ${cwd} variable
+	cwd, err := os.Getwd()
+	if err != nil {
+		// Fallback to empty string if we can't get the current directory
+		cwd = ""
+	}
+	
 	// Create a copy of the task to avoid modifying the original
 	substituted := *task
 	
-	// Replace ${workspaceFolder} in command
+	// Replace variables in command
 	substituted.Command = strings.ReplaceAll(task.Command, "${workspaceFolder}", workspaceDir)
-	// Replace ${file} in command
 	substituted.Command = strings.ReplaceAll(substituted.Command, "${file}", file)
+	substituted.Command = strings.ReplaceAll(substituted.Command, "${cwd}", cwd)
 	
-	// Replace ${workspaceFolder} and ${file} in args
+	// Replace variables in args
 	if len(task.Args) > 0 {
 		substituted.Args = make([]string, len(task.Args))
 		for i, arg := range task.Args {
 			substituted.Args[i] = strings.ReplaceAll(arg, "${workspaceFolder}", workspaceDir)
 			substituted.Args[i] = strings.ReplaceAll(substituted.Args[i], "${file}", file)
+			substituted.Args[i] = strings.ReplaceAll(substituted.Args[i], "${cwd}", cwd)
 		}
 	}
 	
