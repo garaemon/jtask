@@ -85,26 +85,26 @@ jtask/
 VS Code tasks.json supports extensive variable substitution. Currently, jtask has limited variable support that needs significant enhancement.
 
 ### Current Variable Support
-- `${workspaceFolder}` - Path to workspace folder
-- `${file}` - Path to currently selected file (via --file flag)
+- `${workspaceFolder}` - Path to workspace folder ✓
+- `${file}` - Path to currently selected file (via --file flag) ✓
 - `${cwd}` - Current working directory ✓
+- `${pathSeparator}` - OS-specific path separator ✓
+- `${env:VARNAME}` - Environment variable expansion ✓
+- `${workspaceFolderBasename}` - Workspace folder name only ✓
+- `${fileBasename}` - Current file name with extension ✓
+- `${fileBasenameNoExtension}` - Current file name without extension ✓
+- `${fileDirname}` - Directory path of current file ✓
+- `${fileExtname}` - Extension of current file ✓
 
 ### Missing VS Code Variables
 
 #### File-related Variables
-- `${workspaceFolderBasename}` - Workspace folder name only
 - `${fileWorkspaceFolder}` - Workspace folder of the current file
 - `${relativeFile}` - Current file relative to workspace root
 - `${relativeFileDirname}` - Directory of current file relative to workspace
-- `${fileBasename}` - Current file name with extension
-- `${fileBasenameNoExtension}` - Current file name without extension
-- `${fileDirname}` - Directory path of current file
-- `${fileExtname}` - Extension of current file
 
 #### System Variables
 - `${execPath}` - Path to VS Code executable (may not apply)
-- `${pathSeparator}` - OS-specific path separator
-- `${env:VARNAME}` - Environment variable expansion
 - `${config:setting}` - VS Code configuration values (may not apply)
 
 #### Editor Variables (Limited Applicability)
@@ -148,11 +148,16 @@ internal/
 - Implement comprehensive variable resolution system
 - Add `internal/variables` package with pluggable resolvers
 - Support all VS Code file-related variables
-- Support environment variable expansion (`${env:VARNAME}`)
-- Support system variables (`${pathSeparator}`)
 - Update existing `run` command to use new variable system
 - Ensure backward compatibility with current variables
 - ✓ Added `${cwd}` variable support
+- ✓ Added `${pathSeparator}` variable support
+- ✓ Added `${env:VARNAME}` environment variable expansion
+- ✓ Added `${workspaceFolderBasename}` variable support
+- ✓ Added `${fileBasename}` variable support
+- ✓ Added `${fileBasenameNoExtension}` variable support
+- ✓ Added `${fileDirname}` variable support
+- ✓ Added `${fileExtname}` variable support
 
 ### Phase 2: Extended Commands
 - `init` command with template support

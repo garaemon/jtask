@@ -3,6 +3,8 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/garaemon/jtask/internal/config"
@@ -95,6 +97,17 @@ func executeRunCommand(cmd *cobra.Command, args []string) error {
 	return executor.RunTask(targetTask, workspaceDir, file)
 }
 
+// substituteEnvVariablesForDryRun replaces ${env:VARNAME} patterns with environment variable values
+func substituteEnvVariablesForDryRun(text string) string {
+	envVarPattern := regexp.MustCompile(`\$\{env:([^}]+)\}`)
+	return envVarPattern.ReplaceAllStringFunc(text, func(match string) string {
+		// Extract variable name from ${env:VARNAME}
+		varName := envVarPattern.FindStringSubmatch(match)[1]
+		// Get environment variable value, return empty string if not found
+		return os.Getenv(varName)
+	})
+}
+
 func substituteVariablesForDryRun(task *config.Task, workspaceDir string, file string) *config.Task {
 	// Get current working directory for ${cwd} variable
 	cwd, err := os.Getwd()
@@ -103,21 +116,67 @@ func substituteVariablesForDryRun(task *config.Task, workspaceDir string, file s
 		cwd = ""
 	}
 	
+	// Get OS-specific path separator for ${pathSeparator} variable
+	pathSeparator := string(filepath.Separator)
+	
+	// Get workspace folder basename for ${workspaceFolderBasename} variable
+	workspaceFolderBasename := filepath.Base(workspaceDir)
+	
+	// Get file basename for ${fileBasename} variable
+	fileBasename := ""
+	if file != "" {
+		fileBasename = filepath.Base(file)
+	}
+	
+	// Get file basename without extension for ${fileBasenameNoExtension} variable
+	fileBasenameNoExtension := ""
+	if file != "" {
+		basename := filepath.Base(file)
+		ext := filepath.Ext(basename)
+		fileBasenameNoExtension = strings.TrimSuffix(basename, ext)
+	}
+	
+	// Get file directory for ${fileDirname} variable
+	fileDirname := ""
+	if file != "" {
+		fileDirname = filepath.Dir(file)
+	}
+	
+	// Get file extension for ${fileExtname} variable
+	fileExtname := ""
+	if file != "" {
+		fileExtname = filepath.Ext(file)
+	}
+	
 	// Create a copy of the task to avoid modifying the original
 	substituted := *task
 	
 	// Replace variables in command
 	substituted.Command = strings.ReplaceAll(task.Command, "${workspaceFolder}", workspaceDir)
+	substituted.Command = strings.ReplaceAll(substituted.Command, "${workspaceFolderBasename}", workspaceFolderBasename)
 	substituted.Command = strings.ReplaceAll(substituted.Command, "${file}", file)
+	substituted.Command = strings.ReplaceAll(substituted.Command, "${fileBasename}", fileBasename)
+	substituted.Command = strings.ReplaceAll(substituted.Command, "${fileBasenameNoExtension}", fileBasenameNoExtension)
+	substituted.Command = strings.ReplaceAll(substituted.Command, "${fileDirname}", fileDirname)
+	substituted.Command = strings.ReplaceAll(substituted.Command, "${fileExtname}", fileExtname)
 	substituted.Command = strings.ReplaceAll(substituted.Command, "${cwd}", cwd)
+	substituted.Command = strings.ReplaceAll(substituted.Command, "${pathSeparator}", pathSeparator)
+	substituted.Command = substituteEnvVariablesForDryRun(substituted.Command)
 	
 	// Replace variables in args
 	if len(task.Args) > 0 {
 		substituted.Args = make([]string, len(task.Args))
 		for i, arg := range task.Args {
 			substituted.Args[i] = strings.ReplaceAll(arg, "${workspaceFolder}", workspaceDir)
+			substituted.Args[i] = strings.ReplaceAll(substituted.Args[i], "${workspaceFolderBasename}", workspaceFolderBasename)
 			substituted.Args[i] = strings.ReplaceAll(substituted.Args[i], "${file}", file)
+			substituted.Args[i] = strings.ReplaceAll(substituted.Args[i], "${fileBasename}", fileBasename)
+			substituted.Args[i] = strings.ReplaceAll(substituted.Args[i], "${fileBasenameNoExtension}", fileBasenameNoExtension)
+			substituted.Args[i] = strings.ReplaceAll(substituted.Args[i], "${fileDirname}", fileDirname)
+			substituted.Args[i] = strings.ReplaceAll(substituted.Args[i], "${fileExtname}", fileExtname)
 			substituted.Args[i] = strings.ReplaceAll(substituted.Args[i], "${cwd}", cwd)
+			substituted.Args[i] = strings.ReplaceAll(substituted.Args[i], "${pathSeparator}", pathSeparator)
+			substituted.Args[i] = substituteEnvVariablesForDryRun(substituted.Args[i])
 		}
 	}
 	
