@@ -82,9 +82,9 @@ jtask/
 
 ## Variable Support
 
-VS Code tasks.json supports extensive variable substitution. Currently, jtask has limited variable support that needs significant enhancement.
+VS Code tasks.json supports extensive variable substitution. jtask now supports all major VS Code file-related variables.
 
-### Current Variable Support
+### Supported Variable Support
 - `${workspaceFolder}` - Path to workspace folder ✓
 - `${file}` - Path to currently selected file (via --file flag) ✓
 - `${cwd}` - Current working directory ✓
@@ -95,21 +95,15 @@ VS Code tasks.json supports extensive variable substitution. Currently, jtask ha
 - `${fileBasenameNoExtension}` - Current file name without extension ✓
 - `${fileDirname}` - Directory path of current file ✓
 - `${fileExtname}` - Extension of current file ✓
+- `${fileWorkspaceFolder}` - Workspace folder of the current file ✓
+- `${relativeFile}` - Current file relative to workspace root ✓
+- `${relativeFileDirname}` - Directory of current file relative to workspace ✓
 
-### Missing VS Code Variables
-
-#### File-related Variables
-- `${fileWorkspaceFolder}` - Workspace folder of the current file
-- `${relativeFile}` - Current file relative to workspace root
-- `${relativeFileDirname}` - Directory of current file relative to workspace
-
-#### System Variables
-- `${execPath}` - Path to VS Code executable (may not apply)
-- `${config:setting}` - VS Code configuration values (may not apply)
-
-#### Editor Variables (Limited Applicability)
-- `${lineNumber}` - Current line number in editor
-- `${selectedText}` - Currently selected text
+### VS Code Variables Not Applicable to CLI Context
+- `${execPath}` - Path to VS Code executable (not applicable)
+- `${config:setting}` - VS Code configuration values (not applicable)
+- `${lineNumber}` - Current line number in editor (not applicable)
+- `${selectedText}` - Currently selected text (not applicable)
 
 ### Proposed Variable Architecture
 
@@ -143,13 +137,11 @@ internal/
 - `list` command ✓
 - `run` command (shell/process tasks) ✓
 
-### Phase 1.5: Enhanced Variable Support (IN PROGRESS)
+### Phase 1.5: Enhanced Variable Support (COMPLETED)
 **This phase should be completed before adding new commands**
-- Implement comprehensive variable resolution system
-- Add `internal/variables` package with pluggable resolvers
-- Support all VS Code file-related variables
-- Update existing `run` command to use new variable system
-- Ensure backward compatibility with current variables
+- ✓ Support all VS Code file-related variables
+- ✓ Update existing `run` command to use new variable system
+- ✓ Ensure backward compatibility with current variables
 - ✓ Added `${cwd}` variable support
 - ✓ Added `${pathSeparator}` variable support
 - ✓ Added `${env:VARNAME}` environment variable expansion
@@ -158,6 +150,13 @@ internal/
 - ✓ Added `${fileBasenameNoExtension}` variable support
 - ✓ Added `${fileDirname}` variable support
 - ✓ Added `${fileExtname}` variable support
+- ✓ Added `${fileWorkspaceFolder}` variable support
+- ✓ Added `${relativeFile}` variable support
+- ✓ Added `${relativeFileDirname}` variable support
+
+**Future Enhancement:**
+- Implement comprehensive variable resolution system
+- Add `internal/variables` package with pluggable resolvers
 
 ### Phase 2: Extended Commands
 - `init` command with template support
