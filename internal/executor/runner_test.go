@@ -1130,3 +1130,83 @@ func TestSubstituteVariables_WithFileWorkspaceFolder(t *testing.T) {
 		})
 	}
 }
+
+func TestSubstituteVariables_WithRelativeFile(t *testing.T) {
+	workspaceDir := "/home/user/project"
+	
+	tests := []struct {
+		file     string
+		expected string
+		name     string
+	}{
+		{
+			file:     "src/main.go",
+			expected: "src/main.go",
+			name:     "relative file within workspace",
+		},
+		{
+			file:     "/home/user/project/src/components/Button.tsx",
+			expected: "src/components/Button.tsx",
+			name:     "absolute file within workspace",
+		},
+		{
+			file:     "/home/user/other-project/main.go",
+			expected: "",
+			name:     "absolute file outside workspace",
+		},
+		{
+			file:     "",
+			expected: "",
+			name:     "empty file path",
+		},
+	}
+	
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			task := &config.Task{
+				Type:    "shell",
+				Command: "echo ${relativeFile}",
+				Args:    []string{"--file", "${relativeFile}", "test"},
+				Options: &config.TaskOptions{
+					Cwd: "${workspaceFolder}/${relativeFile}",
+					Env: map[string]string{
+						"RELATIVE_FILE": "${relativeFile}",
+						"SOURCE_PATH":   "src/${relativeFile}",
+					},
+				},
+			}
+			
+			substituted := substituteVariables(task, workspaceDir, test.file)
+			
+			expectedCommand := "echo " + test.expected
+			if substituted.Command != expectedCommand {
+				t.Errorf("expected command to be '%s', got '%s'", expectedCommand, substituted.Command)
+			}
+			
+			expectedArgs := []string{"--file", test.expected, "test"}
+			if len(substituted.Args) != len(expectedArgs) {
+				t.Errorf("expected %d args, got %d", len(expectedArgs), len(substituted.Args))
+			}
+			
+			for i, arg := range expectedArgs {
+				if substituted.Args[i] != arg {
+					t.Errorf("expected arg %d to be %s, got %s", i, arg, substituted.Args[i])
+				}
+			}
+			
+			expectedCwdPath := workspaceDir + "/" + test.expected
+			if substituted.Options.Cwd != expectedCwdPath {
+				t.Errorf("expected cwd to be '%s', got '%s'", expectedCwdPath, substituted.Options.Cwd)
+			}
+			
+			if substituted.Options.Env["RELATIVE_FILE"] != test.expected {
+				t.Errorf("expected RELATIVE_FILE to be '%s', got '%s'", test.expected, substituted.Options.Env["RELATIVE_FILE"])
+			}
+			
+			expectedSourcePath := "src/" + test.expected
+			if substituted.Options.Env["SOURCE_PATH"] != expectedSourcePath {
+				t.Errorf("expected SOURCE_PATH to be '%s', got '%s'", expectedSourcePath, substituted.Options.Env["SOURCE_PATH"])
+			}
+		})
+	}
+}
