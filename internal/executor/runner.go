@@ -135,6 +135,43 @@ func substituteVariables(task *config.Task, workspaceDir string, file string) *c
 		fileExtname = filepath.Ext(file)
 	}
 	
+	// Get workspace folder of the current file for ${fileWorkspaceFolder} variable
+	fileWorkspaceFolder := ""
+	if file != "" {
+		// If file is absolute path, check if it's within workspace
+		if filepath.IsAbs(file) {
+			// Check if file is within the workspace directory
+			rel, err := filepath.Rel(workspaceDir, file)
+			if err == nil && !strings.HasPrefix(rel, "..") {
+				fileWorkspaceFolder = workspaceDir
+			}
+		} else {
+			// If file is relative, assume it's relative to workspace
+			fileWorkspaceFolder = workspaceDir
+		}
+	}
+	
+	// Get relative file path for ${relativeFile} variable
+	relativeFile := ""
+	if file != "" {
+		if filepath.IsAbs(file) {
+			// If file is absolute, get relative path from workspace
+			rel, err := filepath.Rel(workspaceDir, file)
+			if err == nil && !strings.HasPrefix(rel, "..") {
+				relativeFile = rel
+			}
+		} else {
+			// If file is already relative, use as is
+			relativeFile = file
+		}
+	}
+	
+	// Get relative file directory path for ${relativeFileDirname} variable
+	relativeFileDirname := ""
+	if relativeFile != "" {
+		relativeFileDirname = filepath.Dir(relativeFile)
+	}
+	
 	// Create a copy of the task to avoid modifying the original
 	substituted := *task
 	
@@ -146,6 +183,9 @@ func substituteVariables(task *config.Task, workspaceDir string, file string) *c
 	substituted.Command = strings.ReplaceAll(substituted.Command, "${fileBasenameNoExtension}", fileBasenameNoExtension)
 	substituted.Command = strings.ReplaceAll(substituted.Command, "${fileDirname}", fileDirname)
 	substituted.Command = strings.ReplaceAll(substituted.Command, "${fileExtname}", fileExtname)
+	substituted.Command = strings.ReplaceAll(substituted.Command, "${fileWorkspaceFolder}", fileWorkspaceFolder)
+	substituted.Command = strings.ReplaceAll(substituted.Command, "${relativeFile}", relativeFile)
+	substituted.Command = strings.ReplaceAll(substituted.Command, "${relativeFileDirname}", relativeFileDirname)
 	substituted.Command = strings.ReplaceAll(substituted.Command, "${cwd}", cwd)
 	substituted.Command = strings.ReplaceAll(substituted.Command, "${pathSeparator}", pathSeparator)
 	substituted.Command = substituteEnvVariables(substituted.Command)
@@ -161,6 +201,9 @@ func substituteVariables(task *config.Task, workspaceDir string, file string) *c
 			substituted.Args[i] = strings.ReplaceAll(substituted.Args[i], "${fileBasenameNoExtension}", fileBasenameNoExtension)
 			substituted.Args[i] = strings.ReplaceAll(substituted.Args[i], "${fileDirname}", fileDirname)
 			substituted.Args[i] = strings.ReplaceAll(substituted.Args[i], "${fileExtname}", fileExtname)
+			substituted.Args[i] = strings.ReplaceAll(substituted.Args[i], "${fileWorkspaceFolder}", fileWorkspaceFolder)
+			substituted.Args[i] = strings.ReplaceAll(substituted.Args[i], "${relativeFile}", relativeFile)
+			substituted.Args[i] = strings.ReplaceAll(substituted.Args[i], "${relativeFileDirname}", relativeFileDirname)
 			substituted.Args[i] = strings.ReplaceAll(substituted.Args[i], "${cwd}", cwd)
 			substituted.Args[i] = strings.ReplaceAll(substituted.Args[i], "${pathSeparator}", pathSeparator)
 			substituted.Args[i] = substituteEnvVariables(substituted.Args[i])
@@ -180,6 +223,9 @@ func substituteVariables(task *config.Task, workspaceDir string, file string) *c
 			substituted.Options.Cwd = strings.ReplaceAll(substituted.Options.Cwd, "${fileBasenameNoExtension}", fileBasenameNoExtension)
 			substituted.Options.Cwd = strings.ReplaceAll(substituted.Options.Cwd, "${fileDirname}", fileDirname)
 			substituted.Options.Cwd = strings.ReplaceAll(substituted.Options.Cwd, "${fileExtname}", fileExtname)
+			substituted.Options.Cwd = strings.ReplaceAll(substituted.Options.Cwd, "${fileWorkspaceFolder}", fileWorkspaceFolder)
+			substituted.Options.Cwd = strings.ReplaceAll(substituted.Options.Cwd, "${relativeFile}", relativeFile)
+			substituted.Options.Cwd = strings.ReplaceAll(substituted.Options.Cwd, "${relativeFileDirname}", relativeFileDirname)
 			substituted.Options.Cwd = strings.ReplaceAll(substituted.Options.Cwd, "${cwd}", cwd)
 			substituted.Options.Cwd = strings.ReplaceAll(substituted.Options.Cwd, "${pathSeparator}", pathSeparator)
 			substituted.Options.Cwd = substituteEnvVariables(substituted.Options.Cwd)
@@ -195,6 +241,9 @@ func substituteVariables(task *config.Task, workspaceDir string, file string) *c
 				substituted.Options.Env[key] = strings.ReplaceAll(substituted.Options.Env[key], "${fileBasenameNoExtension}", fileBasenameNoExtension)
 				substituted.Options.Env[key] = strings.ReplaceAll(substituted.Options.Env[key], "${fileDirname}", fileDirname)
 				substituted.Options.Env[key] = strings.ReplaceAll(substituted.Options.Env[key], "${fileExtname}", fileExtname)
+				substituted.Options.Env[key] = strings.ReplaceAll(substituted.Options.Env[key], "${fileWorkspaceFolder}", fileWorkspaceFolder)
+				substituted.Options.Env[key] = strings.ReplaceAll(substituted.Options.Env[key], "${relativeFile}", relativeFile)
+				substituted.Options.Env[key] = strings.ReplaceAll(substituted.Options.Env[key], "${relativeFileDirname}", relativeFileDirname)
 				substituted.Options.Env[key] = strings.ReplaceAll(substituted.Options.Env[key], "${cwd}", cwd)
 				substituted.Options.Env[key] = strings.ReplaceAll(substituted.Options.Env[key], "${pathSeparator}", pathSeparator)
 				substituted.Options.Env[key] = substituteEnvVariables(substituted.Options.Env[key])
