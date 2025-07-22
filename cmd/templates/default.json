@@ -1,0 +1,26 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build",
+      "type": "shell",
+      "command": "echo",
+      "args": ["Build task - replace with your build command"],
+      "group": "build"
+    },
+    {
+      "label": "test",
+      "type": "shell", 
+      "command": "echo",
+      "args": ["Test task - replace with your test command"],
+      "group": "test"
+    },
+    {
+      "label": "clean",
+      "type": "shell",
+      "command": "echo",
+      "args": ["Clean task - replace with your clean command"],
+      "group": "build"
+    }
+  ]
+}

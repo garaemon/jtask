@@ -1,0 +1,108 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "install",
+      "type": "shell",
+      "command": "npm",
+      "args": ["install"],
+      "group": "build",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      }
+    },
+    {
+      "label": "build",
+      "type": "shell",
+      "command": "npm",
+      "args": ["run", "build"],
+      "group": {
+        "kind": "build", 
+        "isDefault": true
+      },
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "install"
+    },
+    {
+      "label": "test",
+      "type": "shell",
+      "command": "npm",
+      "args": ["test"],
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "install"
+    },
+    {
+      "label": "test-watch",
+      "type": "shell",
+      "command": "npm",
+      "args": ["run", "test:watch"],
+      "group": "test",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "install"
+    },
+    {
+      "label": "start",
+      "type": "shell",
+      "command": "npm",
+      "args": ["start"],
+      "group": "build",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "install"
+    },
+    {
+      "label": "dev",
+      "type": "shell",
+      "command": "npm",
+      "args": ["run", "dev"],
+      "group": "build",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "install"
+    },
+    {
+      "label": "lint",
+      "type": "shell",
+      "command": "npm",
+      "args": ["run", "lint"],
+      "group": "test",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "install"
+    },
+    {
+      "label": "lint-fix",
+      "type": "shell",
+      "command": "npm",
+      "args": ["run", "lint:fix"],
+      "group": "test",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "dependsOn": "install"
+    },
+    {
+      "label": "clean",
+      "type": "shell",
+      "command": "rm",
+      "args": ["-rf", "node_modules", "dist", "build"],
+      "group": "build",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      }
+    }
+  ]
+}

@@ -1,0 +1,81 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "build",
+      "type": "shell",
+      "command": "go",
+      "args": ["build", "-o", "${workspaceFolderBasename}", "."],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "options": {
+        "cwd": "${workspaceFolder}"
+      }
+    },
+    {
+      "label": "test",
+      "type": "shell",
+      "command": "go",
+      "args": ["test", "-v", "./..."],
+      "group": {
+        "kind": "test",
+        "isDefault": true
+      },
+      "options": {
+        "cwd": "${workspaceFolder}"
+      }
+    },
+    {
+      "label": "test-coverage",
+      "type": "shell",
+      "command": "go",
+      "args": ["test", "-v", "-coverprofile=coverage.out", "./..."],
+      "group": "test",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      }
+    },
+    {
+      "label": "run",
+      "type": "shell",
+      "command": "go",
+      "args": ["run", "."],
+      "group": "build",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      }
+    },
+    {
+      "label": "clean",
+      "type": "shell",
+      "command": "go",
+      "args": ["clean"],
+      "group": "build",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      }
+    },
+    {
+      "label": "lint",
+      "type": "shell",
+      "command": "golangci-lint",
+      "args": ["run"],
+      "group": "test",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      }
+    },
+    {
+      "label": "mod-tidy",
+      "type": "shell",
+      "command": "go",
+      "args": ["mod", "tidy"],
+      "group": "build",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      }
+    }
+  ]
+}
