@@ -71,7 +71,7 @@ func TestRunInfoCommand(t *testing.T) {
 
 			// Read captured output
 			var buf bytes.Buffer
-			buf.ReadFrom(r)
+			_, _ = buf.ReadFrom(r)
 			output := buf.String()
 
 			// Check results
@@ -217,7 +217,7 @@ func TestPrintTaskInfo(t *testing.T) {
 
 			// Read captured output
 			var buf bytes.Buffer
-			buf.ReadFrom(r)
+			_, _ = buf.ReadFrom(r)
 			output := buf.String()
 
 			// Check all expected strings are present

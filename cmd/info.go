@@ -90,7 +90,7 @@ func printTaskInfo(task *config.Task, tasksPath string) {
 			fmt.Printf("  Working Directory: %s\n", task.Options.Cwd)
 		}
 		
-		if task.Options.Env != nil && len(task.Options.Env) > 0 {
+		if len(task.Options.Env) > 0 {
 			fmt.Println("  Environment Variables:")
 			for key, value := range task.Options.Env {
 				fmt.Printf("    %s=%s\n", key, value)
