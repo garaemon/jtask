@@ -1,10 +1,10 @@
-# jtask
+# tasks-json-cli
 
 A CLI tool written in Go to execute tasks defined in `tasks.json` configuration files (VS Code task format).
 
 ## Purpose
 
-jtask allows you to run tasks from VS Code's `tasks.json` configuration directly from the command line, providing a convenient way to execute build scripts, tests, and other development tasks without needing VS Code.
+tasks-json-cli allows you to run tasks from VS Code's `tasks.json` configuration directly from the command line, providing a convenient way to execute build scripts, tests, and other development tasks without needing VS Code.
 
 ## Status
 
@@ -14,10 +14,10 @@ jtask allows you to run tasks from VS Code's `tasks.json` configuration directly
 
 ### Building the Project
 
-To build the jtask executable:
+To build the tasks-json-cli executable:
 
 ```bash
-go build -o jtask
+go build -o tasks-json-cli
 ```
 
 To build and install:

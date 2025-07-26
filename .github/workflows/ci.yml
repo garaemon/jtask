@@ -27,7 +27,7 @@ jobs:
       uses: codecov/codecov-action@v5
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
-        slug: garaemon/jtask
+        slug: garaemon/tasks-json-cli
         file: ./coverage.ou
 
   lint:

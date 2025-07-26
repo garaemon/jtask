@@ -1,4 +1,4 @@
-module github.com/garaemon/jtask
+module github.com/garaemon/tasks-json-cli
 
 go 1.24.4
 

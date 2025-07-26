@@ -7,9 +7,9 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/garaemon/jtask/internal/config"
-	"github.com/garaemon/jtask/internal/discovery"
-	"github.com/garaemon/jtask/internal/executor"
+	"github.com/garaemon/tasks-json-cli/internal/config"
+	"github.com/garaemon/tasks-json-cli/internal/discovery"
+	"github.com/garaemon/tasks-json-cli/internal/executor"
 	"github.com/spf13/cobra"
 )
 

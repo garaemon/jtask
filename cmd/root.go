@@ -13,9 +13,9 @@ var (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "jtask",
+	Use:   "tasks-json-cli",
 	Short: "Execute VS Code tasks from command line",
-	Long: `jtask is a CLI tool that executes tasks defined in VS Code's tasks.json configuration files.
+	Long: `tasks-json-cli is a CLI tool that executes tasks defined in VS Code's tasks.json configuration files.
 It allows you to run VS Code tasks directly from the command line without needing the editor.`,
 }
 

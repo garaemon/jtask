@@ -8,7 +8,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/garaemon/jtask/internal/config"
+	"github.com/garaemon/tasks-json-cli/internal/config"
 )
 
 func executeTask(task *config.Task, workspaceDir string, file string) error {

@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/garaemon/jtask/internal/config"
+	"github.com/garaemon/tasks-json-cli/internal/config"
 )
 
 func TestBuildCommand_Shell(t *testing.T) {
@@ -381,11 +381,11 @@ func TestSubstituteVariables_WithEnvVars(t *testing.T) {
 	file := "src/main.go"
 	
 	// Set test environment variables
-	os.Setenv("TEST_VAR", "test_value")
-	os.Setenv("BUILD_TYPE", "debug")
+	_ = os.Setenv("TEST_VAR", "test_value")
+	_ = os.Setenv("BUILD_TYPE", "debug")
 	defer func() {
-		os.Unsetenv("TEST_VAR")
-		os.Unsetenv("BUILD_TYPE")
+		_ = os.Unsetenv("TEST_VAR")
+		_ = os.Unsetenv("BUILD_TYPE")
 	}()
 	
 	task := &config.Task{
@@ -441,11 +441,11 @@ func TestSubstituteVariables_WithEnvVars(t *testing.T) {
 
 func TestSubstituteEnvVariables(t *testing.T) {
 	// Set test environment variables
-	os.Setenv("TEST_HOME", "/home/test")
-	os.Setenv("TEST_PATH", "/usr/bin")
+	_ = os.Setenv("TEST_HOME", "/home/test")
+	_ = os.Setenv("TEST_PATH", "/usr/bin")
 	defer func() {
-		os.Unsetenv("TEST_HOME")
-		os.Unsetenv("TEST_PATH")
+		_ = os.Unsetenv("TEST_HOME")
+		_ = os.Unsetenv("TEST_PATH")
 	}()
 	
 	tests := []struct {
