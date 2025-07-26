@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/garaemon/jtask/internal/config"
+	"github.com/garaemon/tasks-json-cli/internal/config"
 	"github.com/spf13/cobra"
 )
 
@@ -66,7 +66,7 @@ func TestRunInfoCommand(t *testing.T) {
 			err := runInfoCommand(cmd, []string{tt.taskName})
 
 			// Restore stdout
-			w.Close()
+			_ = w.Close()
 			os.Stdout = oldStdout
 
 			// Read captured output
@@ -212,7 +212,7 @@ func TestPrintTaskInfo(t *testing.T) {
 			printTaskInfo(task, "/path/to/tasks.json")
 
 			// Restore stdout
-			w.Close()
+			_ = w.Close()
 			os.Stdout = oldStdout
 
 			// Read captured output

@@ -1,6 +1,6 @@
 package main
 
-import "github.com/garaemon/jtask/cmd"
+import "github.com/garaemon/tasks-json-cli/cmd"
 
 func main() {
 	cmd.Execute()

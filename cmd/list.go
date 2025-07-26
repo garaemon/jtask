@@ -5,8 +5,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/garaemon/jtask/internal/config"
-	"github.com/garaemon/jtask/internal/discovery"
+	"github.com/garaemon/tasks-json-cli/internal/config"
+	"github.com/garaemon/tasks-json-cli/internal/discovery"
 	"github.com/spf13/cobra"
 )
 

@@ -5,8 +5,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/garaemon/jtask/internal/config"
-	"github.com/garaemon/jtask/internal/discovery"
+	"github.com/garaemon/tasks-json-cli/internal/config"
+	"github.com/garaemon/tasks-json-cli/internal/discovery"
 	"github.com/spf13/cobra"
 )
 
@@ -126,7 +126,7 @@ func printTaskInfo(task *config.Task, tasksPath string) {
 		fmt.Println()
 		fmt.Println("Additional Information:")
 		fmt.Printf("  Source File: %s\n", tasksPath)
-		fmt.Println("  Note: Use 'jtask run' with --file flag to see variable substitution")
+		fmt.Println("  Note: Use 'tasks-json-cli run' with --file flag to see variable substitution")
 	}
 }
 

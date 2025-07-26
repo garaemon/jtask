@@ -23,11 +23,11 @@ func TestRunInitCommand(t *testing.T) {
 	}()
 
 	// Create temporary directory for testing
-	tempDir, err := os.MkdirTemp("", "jtask-init-test")
+	tempDir, err := os.MkdirTemp("", "tasks-json-cli-init-test")
 	if err != nil {
 		t.Fatalf("failed to create temp dir: %v", err)
 	}
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 
 	tests := []struct {
 		name         string
@@ -157,11 +157,11 @@ func TestIsValidTemplate(t *testing.T) {
 }
 
 func TestCreateDirectoryIfNeeded(t *testing.T) {
-	tempDir, err := os.MkdirTemp("", "jtask-dir-test")
+	tempDir, err := os.MkdirTemp("", "tasks-json-cli-dir-test")
 	if err != nil {
 		t.Fatalf("failed to create temp dir: %v", err)
 	}
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 
 	tests := []struct {
 		name        string
@@ -297,11 +297,11 @@ func TestGetAvailableTemplates(t *testing.T) {
 }
 
 func TestWriteTemplateToFile(t *testing.T) {
-	tempDir, err := os.MkdirTemp("", "jtask-write-test")
+	tempDir, err := os.MkdirTemp("", "tasks-json-cli-write-test")
 	if err != nil {
 		t.Fatalf("failed to create temp dir: %v", err)
 	}
-	defer os.RemoveAll(tempDir)
+	defer func() { _ = os.RemoveAll(tempDir) }()
 
 	testContent := `{"test": "content"}`
 	testFile := filepath.Join(tempDir, "test.json")

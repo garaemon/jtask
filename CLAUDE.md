@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Building
 ```bash
-go build -o jtask        # Build the executable
+go build -o tasks-json-cli        # Build the executable
 go install              # Build and install
 ```
 
@@ -22,17 +22,17 @@ golangci-lint run        # Run linter (install with: go install github.com/golan
 
 ## Project Architecture
 
-jtask is a CLI tool written in Go that executes tasks defined in VS Code's `tasks.json` configuration files.
+tasks-json-cli is a CLI tool written in Go that executes tasks defined in VS Code's `tasks.json` configuration files.
 
 ### Current Structure
 - `main.go`: Entry point (currently just a placeholder)
-- Go module: `github.com/garaemon/jtask`
+- Go module: `github.com/garaemon/tasks-json-cli`
 - Target Go version: 1.24.4
 - CI/CD: GitHub Actions with build and lint jobs
 
 ### Planned Directory Structure
 ```
-jtask/
+tasks-json-cli/
 ├── main.go              # Entry point
 ├── cmd/                 # Command definitions (cobra)
 │   ├── root.go          # Root command
@@ -68,12 +68,12 @@ jtask/
 ## CLI Command Structure
 
 ### Core Commands
-- `jtask list [--group <group>] [--type <type>]` - List available tasks
-- `jtask run <task-name> [--dry-run]` - Execute specified task
-- `jtask init [--template <template>]` - Initialize basic tasks.json file
-- `jtask info <task-name>` - Show task details
-- `jtask validate [path]` - Validate tasks.json syntax
-- `jtask watch <task-name>` - Watch files and auto-execute task
+- `tasks-json-cli list [--group <group>] [--type <type>]` - List available tasks
+- `tasks-json-cli run <task-name> [--dry-run]` - Execute specified task
+- `tasks-json-cli init [--template <template>]` - Initialize basic tasks.json file
+- `tasks-json-cli info <task-name>` - Show task details
+- `tasks-json-cli validate [path]` - Validate tasks.json syntax
+- `tasks-json-cli watch <task-name>` - Watch files and auto-execute task
 
 ### Global Flags
 - `--config, -c` - Specify tasks.json file path
@@ -82,7 +82,7 @@ jtask/
 
 ## Variable Support
 
-VS Code tasks.json supports extensive variable substitution. jtask now supports all major VS Code file-related variables.
+VS Code tasks.json supports extensive variable substitution. tasks-json-cli now supports all major VS Code file-related variables.
 
 ### Supported Variable Support
 - `${workspaceFolder}` - Path to workspace folder ✓
