@@ -25,6 +25,7 @@ var initCmd = &cobra.Command{
 	Short: "Initialize basic tasks.json file",
 	Long:  `Initialize a basic tasks.json file with template support.`,
 	RunE:  runInitCommand,
+	SilenceUsage: true,
 }
 
 func init() {
