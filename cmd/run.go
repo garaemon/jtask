@@ -23,6 +23,7 @@ var runCommand = &cobra.Command{
 	Long:  `Execute a task defined in the tasks.json file.`,
 	Args:  cobra.ExactArgs(1),
 	RunE:  executeRunCommand,
+	SilenceUsage: true,
 }
 
 func executeRunCommand(cmd *cobra.Command, args []string) error {

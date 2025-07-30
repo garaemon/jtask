@@ -17,6 +17,7 @@ var rootCmd = &cobra.Command{
 	Short: "Execute VS Code tasks from command line",
 	Long: `tasks-json-cli is a CLI tool that executes tasks defined in VS Code's tasks.json configuration files.
 It allows you to run VS Code tasks directly from the command line without needing the editor.`,
+	SilenceUsage: true,
 }
 
 func Execute() {

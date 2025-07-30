@@ -16,6 +16,7 @@ var infoCmd = &cobra.Command{
 	Long:  `Show detailed information about a specific task.`,
 	Args:  cobra.ExactArgs(1),
 	RunE:  runInfoCommand,
+	SilenceUsage: true,
 }
 
 func init() {

@@ -20,6 +20,7 @@ var listCmd = &cobra.Command{
 	Short: "List available tasks",
 	Long:  `List all available tasks from the tasks.json file.`,
 	RunE:  runListCommand,
+	SilenceUsage: true,
 }
 
 func init() {
