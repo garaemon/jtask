@@ -72,13 +72,45 @@ tasks-json-cli/
 - `tasks-json-cli run <task-name> [--dry-run]` - Execute specified task
 - `tasks-json-cli init [--template <template>]` - Initialize basic tasks.json file
 - `tasks-json-cli info <task-name>` - Show task details
-- `tasks-json-cli validate [path]` - Validate tasks.json syntax
+- `tasks-json-cli validate [path]` - Validate tasks.json syntax and structure
 - `tasks-json-cli watch <task-name>` - Watch files and auto-execute task
 
 ### Global Flags
 - `--config, -c` - Specify tasks.json file path
 - `--verbose, -v` - Verbose output
 - `--quiet, -q` - Minimal output
+
+## Validation Features
+
+The `validate` command provides comprehensive validation for tasks.json configuration files:
+
+### Validation Types
+
+**Errors** (cause validation failure with exit code 1):
+- File not found
+- Invalid JSON syntax
+- Missing required fields (label, type, command)
+- Duplicate task labels
+
+**Warnings** (validation passes but issues are reported):
+- Unknown task types (not 'shell' or 'process')
+- References to non-existent dependency tasks
+- Non-existent working directories (absolute paths only)
+
+### Usage Examples
+```bash
+# Validate current directory's tasks.json
+tasks-json-cli validate
+
+# Validate specific file
+tasks-json-cli validate path/to/tasks.json
+
+# Quiet mode (exit code only)
+tasks-json-cli validate --quiet
+
+# Verbose output with additional details
+tasks-json-cli validate --verbose
+```
 
 ## Variable Support
 
@@ -159,9 +191,9 @@ internal/
 - Add `internal/variables` package with pluggable resolvers
 
 ### Phase 2: Extended Commands
-- `init` command with template support
-- `info` command for task details
-- `validate` command for tasks.json validation
+- `init` command with template support ✓
+- `info` command for task details ✓
+- `validate` command for tasks.json validation ✓
 
 ### Phase 3: Advanced Features
 - `watch` command with file monitoring
