@@ -79,14 +79,25 @@ func executeRunCommand(cmd *cobra.Command, args []string) error {
 	}
 
 	if dryRun {
-		// Apply variable substitution for dry-run display
-		substitutedTask := substituteVariablesForDryRun(targetTask, workspaceDir, file)
+		// Resolve dependencies for dry-run display
+		resolver := executor.NewDependencyResolver(tasks)
+		executionOrder, err := resolver.ResolveExecutionOrder(targetTask.Label)
+		if err != nil {
+			return fmt.Errorf("failed to resolve dependencies: %w", err)
+		}
 		
-		fmt.Printf("Would execute task: %s\n", substitutedTask.Label)
-		fmt.Printf("  Type: %s\n", substitutedTask.Type)
-		fmt.Printf("  Command: %s\n", substitutedTask.Command)
-		if len(substitutedTask.Args) > 0 {
-			fmt.Printf("  Args: %v\n", substitutedTask.Args)
+		fmt.Printf("Would execute the following tasks in order:\n")
+		for i, task := range executionOrder {
+			// Apply variable substitution for dry-run display
+			substitutedTask := substituteVariablesForDryRun(task, workspaceDir, file)
+			
+			fmt.Printf("%d. Task: %s\n", i+1, substitutedTask.Label)
+			fmt.Printf("   Type: %s\n", substitutedTask.Type)
+			fmt.Printf("   Command: %s\n", substitutedTask.Command)
+			if len(substitutedTask.Args) > 0 {
+				fmt.Printf("   Args: %v\n", substitutedTask.Args)
+			}
+			fmt.Println()
 		}
 		return nil
 	}
@@ -95,7 +106,7 @@ func executeRunCommand(cmd *cobra.Command, args []string) error {
 		fmt.Printf("Executing task: %s\n", targetTask.Label)
 	}
 
-	return executor.RunTask(targetTask, workspaceDir, file)
+	return executor.RunTaskWithDependencies(targetTask, tasks, workspaceDir, file)
 }
 
 // substituteEnvVariablesForDryRun replaces ${env:VARNAME} patterns with environment variable values
