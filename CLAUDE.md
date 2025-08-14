@@ -112,6 +112,49 @@ tasks-json-cli validate --quiet
 tasks-json-cli validate --verbose
 ```
 
+## Watch Features
+
+The `watch` command provides file monitoring capabilities that automatically execute tasks when file changes are detected:
+
+### Watch Options
+
+**File Monitoring**:
+- Real-time file change detection using fsnotify
+- Configurable watch paths (defaults to workspace folder)
+- File extension filtering (e.g., `.go`, `.js`, `.ts`)
+- Path exclusion patterns (defaults: `node_modules`, `.git`, `.vscode`)
+
+**Execution Control**:
+- Debounced execution with configurable delay (default: 500ms)
+- Support for all VS Code variable substitution
+- Verbose and quiet output modes
+
+### Usage Examples
+```bash
+# Watch workspace folder for any changes and run build task
+tasks-json-cli watch build
+
+# Watch specific paths with file extension filtering
+tasks-json-cli watch test --path src --path tests --ext .go,.js
+
+# Watch with custom delay and exclusions
+tasks-json-cli watch compile --delay 1s --exclude node_modules,dist,build
+
+# Watch with workspace folder override
+tasks-json-cli watch lint --workspace-folder /path/to/project
+
+# Verbose watch mode
+tasks-json-cli watch format --verbose
+```
+
+### Watch Command Flags
+- `--path strings`: Paths to watch (defaults to workspace folder)
+- `--ext strings`: File extensions to watch (e.g., `.go,.js`)
+- `--exclude strings`: Paths to exclude from watching (default: `[node_modules,.git,.vscode]`)
+- `--delay duration`: Delay before executing task after file change (default: `500ms`)
+- `--workspace-folder string`: Workspace folder path (defaults to git root)
+- `--file string`: File path to replace `${file}` variable
+
 ## Variable Support
 
 VS Code tasks.json supports extensive variable substitution. tasks-json-cli now supports all major VS Code file-related variables.
@@ -196,7 +239,7 @@ internal/
 - `validate` command for tasks.json validation ✓
 
 ### Phase 3: Advanced Features
-- `watch` command with file monitoring
+- `watch` command with file monitoring ✓
 - npm/typescript task type support
 - Compound task (dependsOn) support
 - Task groups and organization features
