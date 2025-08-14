@@ -74,3 +74,33 @@ func (t *Task) IsDefaultInGroup() bool {
 	
 	return false
 }
+
+func (t *Task) GetDependencies() []string {
+	if t.DependsOn == nil {
+		return nil
+	}
+	
+	switch deps := t.DependsOn.(type) {
+	case string:
+		return []string{deps}
+	case []interface{}:
+		var dependencies []string
+		for _, dep := range deps {
+			if depStr, ok := dep.(string); ok {
+				dependencies = append(dependencies, depStr)
+			}
+		}
+		return dependencies
+	case []string:
+		return deps
+	}
+	
+	return nil
+}
+
+func (t *Task) GetDependsOrder() string {
+	if t.DependsOrder == "" {
+		return "parallel"
+	}
+	return t.DependsOrder
+}

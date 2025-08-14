@@ -1,0 +1,17 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "task1",
+      "type": "shell",
+      "command": "echo task1",
+      "dependsOn": "task2"
+    },
+    {
+      "label": "task2",
+      "type": "shell",
+      "command": "echo task2",
+      "dependsOn": "task1"
+    }
+  ]
+}

@@ -257,3 +257,21 @@ func substituteVariables(task *config.Task, workspaceDir string, file string) *c
 func RunTask(task *config.Task, workspaceDir string, file string) error {
 	return executeTask(task, workspaceDir, file)
 }
+
+func RunTaskWithDependencies(task *config.Task, allTasks []config.Task, workspaceDir string, file string) error {
+	resolver := NewDependencyResolver(allTasks)
+	
+	executionOrder, err := resolver.ResolveExecutionOrder(task.Label)
+	if err != nil {
+		return fmt.Errorf("failed to resolve dependencies: %w", err)
+	}
+	
+	for _, t := range executionOrder {
+		err := executeTask(t, workspaceDir, file)
+		if err != nil {
+			return fmt.Errorf("failed to execute task '%s': %w", t.Label, err)
+		}
+	}
+	
+	return nil
+}

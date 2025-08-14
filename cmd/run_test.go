@@ -51,7 +51,7 @@ func TestExecuteRunCommand_DryRun(t *testing.T) {
 	}
 	
 	output := string(out)
-	if !bytes.Contains(out, []byte("Would execute task: build")) {
+	if !bytes.Contains(out, []byte("Would execute the following tasks in order:")) {
 		t.Errorf("expected dry run output, got %s", output)
 	}
 }
@@ -364,7 +364,7 @@ func TestExecuteRunCommand_ComplexTaskWithOptions(t *testing.T) {
 	}
 	
 	output := string(out)
-	if !strings.Contains(output, "Would execute task: compile") {
+	if !strings.Contains(output, "Would execute the following tasks in order:") {
 		t.Errorf("expected task execution info, got %s", output)
 	}
 	if !strings.Contains(output, "Type: process") {
@@ -398,7 +398,7 @@ func TestExecuteRunCommand_WorkspaceFolderAbsolutePath(t *testing.T) {
 	
 	output := string(out)
 	// Note: The cwd option is not shown in dry-run output, but the workspace substitution should occur
-	if !strings.Contains(output, "Would execute task: workspace-cwd") {
+	if !strings.Contains(output, "Task: workspace-cwd") {
 		t.Errorf("expected task execution with workspace folder, got %s", output)
 	}
 }
@@ -530,7 +530,7 @@ func TestExecuteRunCommand_MultipleWorkspaceVars(t *testing.T) {
 	}
 	
 	output := string(out)
-	if !strings.Contains(output, "Would execute task: workspace-env") {
+	if !strings.Contains(output, "Task: workspace-env") {
 		t.Errorf("expected task execution with multiple workspace variables, got %s", output)
 	}
 }
