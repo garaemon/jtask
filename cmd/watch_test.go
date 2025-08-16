@@ -113,7 +113,7 @@ func TestAddWatchPath(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer watcher.Close()
+	defer func() { _ = watcher.Close() }()
 
 	// Save original exclude list
 	origExcludes := watchExclude
@@ -135,7 +135,7 @@ func TestAddWatchPath_NonExistentPath(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer watcher.Close()
+	defer func() { _ = watcher.Close() }()
 
 	err = addWatchPath(watcher, "/nonexistent/path")
 	if err == nil {

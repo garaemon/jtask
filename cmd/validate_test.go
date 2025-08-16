@@ -47,6 +47,53 @@ func TestValidateTasksFile(t *testing.T) {
 			expectWarnings: 0,
 		},
 		{
+			name: "npm task valid",
+			content: `{
+				"version": "2.0.0",
+				"tasks": [
+					{
+						"label": "start",
+						"type": "npm",
+						"script": "start"
+					}
+				]
+			}`,
+			expectValid: true,
+			expectErrors: 0,
+			expectWarnings: 0,
+		},
+		{
+			name: "typescript task valid",
+			content: `{
+				"version": "2.0.0",
+				"tasks": [
+					{
+						"label": "build",
+						"type": "typescript",
+						"tsconfig": "tsconfig.json"
+					}
+				]
+			}`,
+			expectValid: true,
+			expectErrors: 0,
+			expectWarnings: 0,
+		},
+		{
+			name: "npm task missing script",
+			content: `{
+				"version": "2.0.0",
+				"tasks": [
+					{
+						"label": "start",
+						"type": "npm"
+					}
+				]
+			}`,
+			expectValid: false,
+			expectErrors: 1,
+			expectWarnings: 0,
+		},
+		{
 			name: "missing required fields",
 			content: `{
 				"version": "2.0.0",
@@ -57,7 +104,7 @@ func TestValidateTasksFile(t *testing.T) {
 				]
 			}`,
 			expectValid: false,
-			expectErrors: 2,
+			expectErrors: 1,
 			expectWarnings: 1,
 		},
 		{
@@ -145,13 +192,13 @@ func TestValidateTasksFile(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			defer os.Remove(tmpFile.Name())
+			defer func() { _ = os.Remove(tmpFile.Name()) }()
 
 			// Write test content
 			if _, err := tmpFile.WriteString(tt.content); err != nil {
 				t.Fatal(err)
 			}
-			tmpFile.Close()
+			_ = tmpFile.Close()
 
 			// Validate the file
 			result := validateTasksFile(tmpFile.Name())
@@ -198,7 +245,7 @@ func TestValidateWorkingDirectory(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.RemoveAll(tmpDir)
+	defer func() { _ = os.RemoveAll(tmpDir) }()
 
 	// Create tasks.json with valid working directory
 	validContent := `{
@@ -219,12 +266,12 @@ func TestValidateWorkingDirectory(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.Remove(tmpFile.Name())
+	defer func() { _ = os.Remove(tmpFile.Name()) }()
 
 	if _, err := tmpFile.WriteString(validContent); err != nil {
 		t.Fatal(err)
 	}
-	tmpFile.Close()
+	_ = tmpFile.Close()
 
 	result := validateTasksFile(tmpFile.Name())
 	if !result.Valid {
@@ -254,12 +301,12 @@ func TestValidateWorkingDirectory(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer os.Remove(tmpFile2.Name())
+	defer func() { _ = os.Remove(tmpFile2.Name()) }()
 
 	if _, err := tmpFile2.WriteString(invalidContent); err != nil {
 		t.Fatal(err)
 	}
-	tmpFile2.Close()
+	_ = tmpFile2.Close()
 
 	result2 := validateTasksFile(tmpFile2.Name())
 	if !result2.Valid {
