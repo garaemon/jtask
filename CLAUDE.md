@@ -155,6 +155,73 @@ tasks-json-cli watch format --verbose
 - `--workspace-folder string`: Workspace folder path (defaults to git root)
 - `--file string`: File path to replace `${file}` variable
 
+## Dependency Support
+
+The CLI now supports VS Code's compound task dependencies through the `dependsOn` property, enabling automatic execution of prerequisite tasks.
+
+### Dependency Features
+
+**Task Dependencies**:
+- Single dependency: `"dependsOn": "task-name"`
+- Multiple dependencies: `"dependsOn": ["task1", "task2"]`
+- Execution order control: `"dependsOrder": "sequence" | "parallel"` (default: parallel)
+
+**Dependency Resolution**:
+- Topological sort algorithm ensures correct execution order
+- Circular dependency detection with detailed error messages
+- Missing dependency validation and reporting
+- Support for complex dependency graphs
+
+**Enhanced Commands**:
+- `run` command automatically resolves and executes dependencies
+- `--dry-run` shows complete execution plan with dependency order
+- `validate` command checks for dependency issues
+
+### Dependency Examples
+```bash
+# Run task with dependencies - automatically resolves and executes prerequisites
+tasks-json-cli run deploy
+
+# Show execution plan including all dependencies
+tasks-json-cli run test --dry-run
+
+# Validate dependency configuration
+tasks-json-cli validate
+```
+
+### Dependency Configuration Example
+```json
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "clean",
+      "type": "shell",
+      "command": "rm -rf build/"
+    },
+    {
+      "label": "compile", 
+      "type": "shell",
+      "command": "go build -o build/app",
+      "dependsOn": "clean"
+    },
+    {
+      "label": "test",
+      "type": "shell",
+      "command": "go test ./...",
+      "dependsOn": ["compile", "lint"],
+      "dependsOrder": "parallel"
+    },
+    {
+      "label": "deploy",
+      "type": "shell",
+      "command": "kubectl apply -f deployment.yaml",
+      "dependsOn": "test"
+    }
+  ]
+}
+```
+
 ## Variable Support
 
 VS Code tasks.json supports extensive variable substitution. tasks-json-cli now supports all major VS Code file-related variables.
@@ -240,8 +307,8 @@ internal/
 
 ### Phase 3: Advanced Features
 - `watch` command with file monitoring ✓
+- Compound task (dependsOn) support ✓
 - npm/typescript task type support
-- Compound task (dependsOn) support
 - Task groups and organization features
 
 ## Key Design Goals

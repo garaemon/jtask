@@ -1,0 +1,34 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "clean",
+      "type": "shell",
+      "command": "rm -rf build/"
+    },
+    {
+      "label": "compile", 
+      "type": "shell",
+      "command": "go build -o build/app",
+      "dependsOn": "clean"
+    },
+    {
+      "label": "lint",
+      "type": "shell", 
+      "command": "golangci-lint run"
+    },
+    {
+      "label": "test",
+      "type": "shell",
+      "command": "go test ./...",
+      "dependsOn": ["compile", "lint"],
+      "dependsOrder": "parallel"
+    },
+    {
+      "label": "deploy",
+      "type": "shell",
+      "command": "kubectl apply -f deployment.yaml",
+      "dependsOn": "test"
+    }
+  ]
+}
