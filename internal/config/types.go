@@ -17,6 +17,14 @@ type Task struct {
 	DependsOrder    string            `json:"dependsOrder,omitempty"`
 	Presentation    *TaskPresentation `json:"presentation,omitempty"`
 	RunOptions      *TaskRunOptions   `json:"runOptions,omitempty"`
+	
+	// TypeScript task specific fields
+	TSConfig        string            `json:"tsconfig,omitempty"`
+	Option          string            `json:"option,omitempty"`
+	
+	// NPM task specific fields
+	Script          string            `json:"script,omitempty"`
+	Path            string            `json:"path,omitempty"`
 }
 
 type TaskOptions struct {

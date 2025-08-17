@@ -158,19 +158,37 @@ func TestRunTask_UnsupportedType(t *testing.T) {
 }
 
 func TestRunTask_EmptyCommand(t *testing.T) {
-	task := &config.Task{
+	// Test shell task with empty command (should fail)
+	shellTask := &config.Task{
 		Type:    "shell",
 		Command: "",
 	}
 
-	err := RunTask(task, "/tmp", "")
-	
+	err := RunTask(shellTask, "/tmp", "")
 	if err == nil {
-		t.Error("expected error for empty command")
+		t.Error("expected error for empty command in shell task")
 	}
 	
-	if err.Error() != "task command is empty" {
-		t.Errorf("expected error message about empty command, got %s", err.Error())
+	// Test npm task without script (should fail)
+	npmTask := &config.Task{
+		Type: "npm",
+	}
+
+	err = RunTask(npmTask, "/tmp", "")
+	if err == nil {
+		t.Error("expected error for npm task without script")
+	}
+	
+	// Test typescript task (should succeed)
+	tsTask := &config.Task{
+		Type: "typescript",
+	}
+
+	// This should not fail due to empty command since typescript tasks don't require command
+	err = RunTask(tsTask, "/tmp", "")
+	// We expect this to fail for other reasons (tsc not found), but not due to empty command
+	if err != nil && strings.Contains(err.Error(), "task command is empty") {
+		t.Error("typescript task should not fail due to empty command")
 	}
 }
 

@@ -86,7 +86,7 @@ func executeWatchCommand(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return fmt.Errorf("failed to create file watcher: %w", err)
 	}
-	defer watcher.Close()
+	defer func() { _ = watcher.Close() }()
 
 	// Set default watch paths if none specified
 	if len(watchPaths) == 0 {

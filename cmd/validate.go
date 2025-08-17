@@ -164,17 +164,8 @@ func validateTasks(tasks []config.Task, result *ValidationResult) {
 			})
 		}
 		
-		if task.Command == "" {
-			result.Valid = false
-			result.Errors = append(result.Errors, ValidationError{
-				Type:      "missing_command",
-				Message:   "task is missing required 'command' field",
-				TaskLabel: task.Label,
-			})
-		}
-		
 		// Validate task type
-		validTypes := []string{"shell", "process"}
+		validTypes := []string{"shell", "process", "npm", "typescript"}
 		isValidType := false
 		for _, validType := range validTypes {
 			if task.Type == validType {
@@ -186,6 +177,26 @@ func validateTasks(tasks []config.Task, result *ValidationResult) {
 			result.Warnings = append(result.Warnings, ValidationError{
 				Type:      "unknown_type",
 				Message:   fmt.Sprintf("unknown task type '%s', supported types: %v", task.Type, validTypes),
+				TaskLabel: task.Label,
+			})
+		}
+		
+		// Validate type-specific required fields
+		if task.Type == "npm" && task.Script == "" {
+			result.Valid = false
+			result.Errors = append(result.Errors, ValidationError{
+				Type:      "missing_script",
+				Message:   "npm task requires 'script' field",
+				TaskLabel: task.Label,
+			})
+		}
+		
+		// Validate command field requirements based on task type
+		if (task.Type == "shell" || task.Type == "process") && task.Command == "" {
+			result.Valid = false
+			result.Errors = append(result.Errors, ValidationError{
+				Type:      "missing_command",
+				Message:   "shell and process tasks require 'command' field",
 				TaskLabel: task.Label,
 			})
 		}

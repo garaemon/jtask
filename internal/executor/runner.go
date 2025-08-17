@@ -12,18 +12,32 @@ import (
 )
 
 func executeTask(task *config.Task, workspaceDir string, file string) error {
-	if task.Type != "shell" && task.Type != "process" {
+	supportedTypes := []string{"shell", "process", "npm", "typescript"}
+	isSupported := false
+	for _, t := range supportedTypes {
+		if task.Type == t {
+			isSupported = true
+			break
+		}
+	}
+	
+	if !isSupported {
 		return fmt.Errorf("unsupported task type: %s", task.Type)
 	}
 
-	if task.Command == "" {
+	// Check command requirements for specific task types
+	if (task.Type == "shell" || task.Type == "process") && task.Command == "" {
 		return fmt.Errorf("task command is empty")
 	}
 
 	// Apply variable substitution
 	substitutedTask := substituteVariables(task, workspaceDir, file)
 	
-	cmd := buildCommand(substitutedTask)
+	// Build command based on task type
+	cmd, err := buildCommandForTaskType(substitutedTask, workspaceDir)
+	if err != nil {
+		return err
+	}
 	
 	if substitutedTask.Options != nil && substitutedTask.Options.Cwd != "" {
 		cmd.Dir = substitutedTask.Options.Cwd
@@ -38,6 +52,21 @@ func executeTask(task *config.Task, workspaceDir string, file string) error {
 	cmd.Stdin = os.Stdin
 
 	return cmd.Run()
+}
+
+func buildCommandForTaskType(task *config.Task, workspaceDir string) (*exec.Cmd, error) {
+	switch task.Type {
+	case "shell":
+		return buildShellCommand(task), nil
+	case "process":
+		return buildProcessCommand(task), nil
+	case "npm":
+		return buildNpmCommand(task, workspaceDir)
+	case "typescript":
+		return buildTypescriptCommand(task, workspaceDir)
+	default:
+		return nil, fmt.Errorf("unsupported task type: %s", task.Type)
+	}
 }
 
 func buildCommand(task *config.Task) *exec.Cmd {
@@ -74,6 +103,51 @@ func buildProcessCommand(task *config.Task) *exec.Cmd {
 		return exec.Command(task.Command)
 	}
 	return exec.Command(task.Command, task.Args...)
+}
+
+func buildNpmCommand(task *config.Task, workspaceDir string) (*exec.Cmd, error) {
+	if task.Script == "" {
+		return nil, fmt.Errorf("npm task requires 'script' field")
+	}
+	
+	args := []string{"run", task.Script}
+	cmd := exec.Command("npm", args...)
+	
+	// Set working directory to task path or workspace directory
+	if task.Path != "" {
+		if filepath.IsAbs(task.Path) {
+			cmd.Dir = task.Path
+		} else {
+			cmd.Dir = filepath.Join(workspaceDir, task.Path)
+		}
+	} else {
+		cmd.Dir = workspaceDir
+	}
+	
+	return cmd, nil
+}
+
+func buildTypescriptCommand(task *config.Task, workspaceDir string) (*exec.Cmd, error) {
+	var args []string
+	
+	// Add tsconfig if specified
+	if task.TSConfig != "" {
+		args = append(args, "-p", task.TSConfig)
+	}
+	
+	// Add option if specified (e.g., "watch")
+	if task.Option != "" {
+		if task.Option == "watch" {
+			args = append(args, "--watch")
+		} else {
+			args = append(args, task.Option)
+		}
+	}
+	
+	cmd := exec.Command("tsc", args...)
+	cmd.Dir = workspaceDir
+	
+	return cmd, nil
 }
 
 func buildEnvVars(envMap map[string]string) []string {
@@ -249,6 +323,40 @@ func substituteVariables(task *config.Task, workspaceDir string, file string) *c
 				substituted.Options.Env[key] = substituteEnvVariables(substituted.Options.Env[key])
 			}
 		}
+	}
+	
+	// Replace variables in TypeScript-specific fields
+	if task.TSConfig != "" {
+		substituted.TSConfig = strings.ReplaceAll(task.TSConfig, "${workspaceFolder}", workspaceDir)
+		substituted.TSConfig = strings.ReplaceAll(substituted.TSConfig, "${workspaceFolderBasename}", workspaceFolderBasename)
+		substituted.TSConfig = strings.ReplaceAll(substituted.TSConfig, "${file}", file)
+		substituted.TSConfig = strings.ReplaceAll(substituted.TSConfig, "${fileBasename}", fileBasename)
+		substituted.TSConfig = strings.ReplaceAll(substituted.TSConfig, "${fileBasenameNoExtension}", fileBasenameNoExtension)
+		substituted.TSConfig = strings.ReplaceAll(substituted.TSConfig, "${fileDirname}", fileDirname)
+		substituted.TSConfig = strings.ReplaceAll(substituted.TSConfig, "${fileExtname}", fileExtname)
+		substituted.TSConfig = strings.ReplaceAll(substituted.TSConfig, "${fileWorkspaceFolder}", fileWorkspaceFolder)
+		substituted.TSConfig = strings.ReplaceAll(substituted.TSConfig, "${relativeFile}", relativeFile)
+		substituted.TSConfig = strings.ReplaceAll(substituted.TSConfig, "${relativeFileDirname}", relativeFileDirname)
+		substituted.TSConfig = strings.ReplaceAll(substituted.TSConfig, "${cwd}", cwd)
+		substituted.TSConfig = strings.ReplaceAll(substituted.TSConfig, "${pathSeparator}", pathSeparator)
+		substituted.TSConfig = substituteEnvVariables(substituted.TSConfig)
+	}
+	
+	// Replace variables in NPM-specific fields
+	if task.Path != "" {
+		substituted.Path = strings.ReplaceAll(task.Path, "${workspaceFolder}", workspaceDir)
+		substituted.Path = strings.ReplaceAll(substituted.Path, "${workspaceFolderBasename}", workspaceFolderBasename)
+		substituted.Path = strings.ReplaceAll(substituted.Path, "${file}", file)
+		substituted.Path = strings.ReplaceAll(substituted.Path, "${fileBasename}", fileBasename)
+		substituted.Path = strings.ReplaceAll(substituted.Path, "${fileBasenameNoExtension}", fileBasenameNoExtension)
+		substituted.Path = strings.ReplaceAll(substituted.Path, "${fileDirname}", fileDirname)
+		substituted.Path = strings.ReplaceAll(substituted.Path, "${fileExtname}", fileExtname)
+		substituted.Path = strings.ReplaceAll(substituted.Path, "${fileWorkspaceFolder}", fileWorkspaceFolder)
+		substituted.Path = strings.ReplaceAll(substituted.Path, "${relativeFile}", relativeFile)
+		substituted.Path = strings.ReplaceAll(substituted.Path, "${relativeFileDirname}", relativeFileDirname)
+		substituted.Path = strings.ReplaceAll(substituted.Path, "${cwd}", cwd)
+		substituted.Path = strings.ReplaceAll(substituted.Path, "${pathSeparator}", pathSeparator)
+		substituted.Path = substituteEnvVariables(substituted.Path)
 	}
 	
 	return &substituted
